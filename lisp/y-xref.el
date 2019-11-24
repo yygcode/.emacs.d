@@ -1,4 +1,4 @@
-;;; ~/.emacs.d/lisp/y-init-company.el --- Company Config
+;;; ~/.emacs.d/lisp/y-xref.el --- Cross reference
 
 ;; Copyright (C) 2017-2020 yonggang.yyg<yygcode@gmail.com>, <cppgp@qq.com>
 
@@ -11,6 +11,7 @@
 ;; SPDX-License-Identifier: GPL-2.0-or-later
 
 ;;; Commentary:
+
 ;; Cross reference config for different major-mode.
 
 ;;; Code:

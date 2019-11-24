@@ -1245,39 +1245,7 @@ C++ call graph: https://github.com/beacoder/call-graph
 - Github: https://github.com/ericdanan/counsel-projectile
 
 #+begin_src emacs-lisp
-  (use-package projectile
-    :diminish
-    :init
-    (setq projectile-sort-order 'recentf-active
-          projectile-enable-caching t
-          projectile-indexing-method 'alien
-          projectile-completion-system 'ivy)
-    (projectile-mode 1)
-    :bind
-    ("C-x C-x p" . projectile-command-map)
-    ("C-x C-x C-p" . projectile-command-map))
-
-  (use-package counsel-projectile
-    :init
-    (setq counsel-projectile-org-capture-templates
-          '(("t" "[${name}] Task" entry
-             (file+headline "${root}/notes.org" "Tasks")
-             "* TODO %?\n  %u\n  %a")
-            ("m" "[${name}] Materials" entry
-             (file+headline "${root}/notes.org" "Materials")
-             "* %?\n  %u\n  %a")))
-    (counsel-projectile-mode 1)
-    :bind
-    ("C-c p p" . counsel-projectile)
-    ("C-c p s" . counsel-projectile-switch-project)
-    ("C-c p ." . counsel-projectile-find-file-dwim)
-    ("C-c p f" . counsel-projectile-find-file)
-    ("C-c p d" . counsel-projectile-find-dir)
-    ("C-c p b" . counsel-projectile-switch-to-buffer)
-    ("C-c p a" . counsel-projectile-ag)
-    ("C-c p g" . counsel-projectile-grep)
-    ("C-c p c" . counsel-projectile-org-capture)
-    ("C-c p A" . counsel-projectile-org-agenda))
+  (require 'y-project)
 #+end_src
 
 ** sr-speedbar
