@@ -1,0 +1,38 @@
+#+TITLE: Emacs Configuration V3
+
+* Introduction
+- Linux and Mac platforms are tested
+- Compatible keybinds in Windows and Terminal
+- C/C++ cross reference and completion
+
+* Files
+- Initialization file: [[file:init.el][init.el]]
+- Org babel config: [[file:config.org][config.org]]
+- Customized Lisp: [[file:lisp/][lisp]]
+
+* Keybind summary
+** C/C++ mode
+| Keybind     | Function                  | Description        |
+|-------------+---------------------------+--------------------|
+| M-.         | counsel-gtags-dwim        | Jump to definition |
+| M-,         | counsel-gtags-go-backward | Jump back          |
+| C-x C-x C-q | y/browse-mode             | Toggle browse mode |
+
+** C/C++ browse mode
+- Press key like as press 'Ctrl-key', e.g.: f means C-f
+| Keybind | Function                  | Description        |
+|---------+---------------------------+--------------------|
+| .       | counsel-gtags-dwim        | Jump to definition |
+| ,       | counsel-gtags-go-backward | Jump back          |
+| TAB     | sp-forward-symbol         | To next symbol     |
+
+* Reference
+** Typical emacs config
+| Project | Link                               | Comments |
+|---------+------------------------------------+----------|
+| Purcell | https://github.com/purcell/emacs.d |          |
+| Prelude | https://github.com/bbatsov/prelude |          |
+|---------+------------------------------------+----------|
+
+* Author
+yonggang.yyg code: [[https://ycode.org]]

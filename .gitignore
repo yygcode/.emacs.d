@@ -1,0 +1,8 @@
+# ref: https://git-scm.com/docs/gitignore
+# ignore everything, except init.el, config.org and lisp/*.el
+**/*
+!/lisp
+!/lisp/*.el
+!/config.org
+!/init.el
+!/README.org
