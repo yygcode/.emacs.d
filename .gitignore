@@ -3,6 +3,6 @@
 **/*
 !/lisp
 !/lisp/*.el
-!/config.org
+!/*.org
 !/init.el
 !/README.org

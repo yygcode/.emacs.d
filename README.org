@@ -26,13 +26,27 @@
 | ,       | counsel-gtags-go-backward | Jump back          |
 | TAB     | sp-forward-symbol         | To next symbol     |
 
+* Dependency
+| name   | project                                         | comments          |
+|--------+-------------------------------------------------+-------------------|
+| ag     | https://github.com/ggreer/the_silver_searcher   | silversearcher-ag |
+| git    | https://git-scm.com/                            | dvcs              |
+| global | https://www.gnu.org/software/global/global.html | tagging system    |
+
 * Reference
 ** Typical emacs config
-| Project | Link                               | Comments |
-|---------+------------------------------------+----------|
-| Purcell | https://github.com/purcell/emacs.d |          |
-| Prelude | https://github.com/bbatsov/prelude |          |
-|---------+------------------------------------+----------|
+| Project   | Link                               | Comments |
+|-----------+------------------------------------+----------|
+| Purcell   | https://github.com/purcell/emacs.d |          |
+| Prelude   | https://github.com/bbatsov/prelude |          |
+| Spacemacs | https://www.spacemacs.org/         |          |
+|-----------+------------------------------------+----------|
+
+** Useful links
+- 子龙山人: https://zilongshanren.com/
+- Prelude: https://prelude.emacsredux.com/en/latest/
+- Tuhdo: http://tuhdo.github.io/index.html
+- Chen Bin: https://github.com/redguardtoo/
 
 * Author
 yonggang.yyg code: [[https://ycode.org]]

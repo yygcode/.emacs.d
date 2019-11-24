@@ -1,0 +1,4 @@
+* Tasks
+** TODO Porject compile
+   [2019-11-24 Sun]
+   [[file:~/.emacs.d/config.org::*projectile][projectile]]

@@ -924,7 +924,11 @@ Visual zap-to-char.
 
 * Development
 ** asm
-
+** cmake
+*cmake-mode* is major-mode for editing CMake sources.
+#+begin_src emacs-lisp
+  (use-package cmake-mode)
+#+end_src
 ** cross-reference
 *** gtags
 *ggtags* and *counsel-gtags* are global wrapper.
@@ -1235,7 +1239,11 @@ C++ call graph: https://github.com/beacoder/call-graph
 
 ** projectile
 *Projectile* is a project interaction library for Emacs.
-Homepage: https://www.projectile.mx/en/latest/
+- Homepage: https://www.projectile.mx/en/latest/
+
+*Counsel-projectile* is a IVY ui for projectile.
+- Github: https://github.com/ericdanan/counsel-projectile
+
 #+begin_src emacs-lisp
   (use-package projectile
     :diminish
@@ -1251,12 +1259,25 @@ Homepage: https://www.projectile.mx/en/latest/
 
   (use-package counsel-projectile
     :init
+    (setq counsel-projectile-org-capture-templates
+          '(("t" "[${name}] Task" entry
+             (file+headline "${root}/notes.org" "Tasks")
+             "* TODO %?\n  %u\n  %a")
+            ("m" "[${name}] Materials" entry
+             (file+headline "${root}/notes.org" "Materials")
+             "* %?\n  %u\n  %a")))
     (counsel-projectile-mode 1)
     :bind
     ("C-c p p" . counsel-projectile)
     ("C-c p s" . counsel-projectile-switch-project)
+    ("C-c p ." . counsel-projectile-find-file-dwim)
     ("C-c p f" . counsel-projectile-find-file)
-    ("C-c p a" . counsel-projectile-ag))
+    ("C-c p d" . counsel-projectile-find-dir)
+    ("C-c p b" . counsel-projectile-switch-to-buffer)
+    ("C-c p a" . counsel-projectile-ag)
+    ("C-c p g" . counsel-projectile-grep)
+    ("C-c p c" . counsel-projectile-org-capture)
+    ("C-c p A" . counsel-projectile-org-agenda))
 #+end_src
 
 ** sr-speedbar
