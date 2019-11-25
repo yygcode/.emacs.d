@@ -31,6 +31,20 @@
   ;; ("C-c p" . projectile-command-map)
   )
 
+(use-package helm-projectile
+  :init
+  (helm-projectile-on)
+  :bind
+  ("C-c p p" . helm-projectile)
+  ("C-c p s" . helm-projectile-switch-project)
+  ("C-c p ." . helm-projectile-find-file-dwim)
+  ("C-c p f" . helm-projectile-find-file)
+  ("C-c p r" . helm-projectile-recentf)
+  ("C-c p d" . helm-projectile-find-dir)
+  ("C-c p b" . helm-projectile-switch-to-buffer)
+  ("C-c p a" . helm-projectile-ag)
+  ("C-c p g" . helm-projectile-grep))
+
 (use-package counsel-projectile
   :init
   (setq counsel-projectile-org-capture-templates
@@ -42,27 +56,21 @@
            "* %?\n  %u\n  %a")))
   (counsel-projectile-mode 1)
   :bind
-  ("C-c p p" . counsel-projectile)
-  ("C-c p s" . counsel-projectile-switch-project)
-  ("C-c p ." . counsel-projectile-find-file-dwim)
-  ("C-c p f" . counsel-projectile-find-file)
-  ("C-c p d" . counsel-projectile-find-dir)
-  ("C-c p b" . counsel-projectile-switch-to-buffer)
-  ("C-c p a" . counsel-projectile-ag)
-  ("C-c p g" . counsel-projectile-grep)
+  ;; ("C-c p p" . counsel-projectile)
+  ;; ("C-c p s" . counsel-projectile-switch-project)
+  ;; ("C-c p ." . counsel-projectile-find-file-dwim)
+  ;; ("C-c p f" . counsel-projectile-find-file)
+  ;; ("C-c p d" . counsel-projectile-find-dir)
+  ;; ("C-c p b" . counsel-projectile-switch-to-buffer)
+  ;; ("C-c p a" . counsel-projectile-ag)
+  ;; ("C-c p g" . counsel-projectile-grep)
   ("C-c p c" . counsel-projectile-org-capture)
-  ("C-c p A" . counsel-projectile-org-agenda))
+  ("C-c p A" . counsel-projectile-org-agenda)
+  )
 
 ;; support .emacs.include
 ;; path-system: src/include ../third-party/include
 ;; path-user: .
-
-(use-package company)
-(use-package company-c-headers
-  :init
-  (make-local-variable 'company-c-headers-path-system)
-  (make-local-variable 'company-c-headers-path-user))
-(use-package flycheck)
 
 (defun y/string-from-file(filename)
   "Return FILENAME content in string."
@@ -116,26 +124,22 @@ user:
         (if (equal type-path 'system)
             (push v y/c-headers-path-system)
           (push v y/c-headers-path-user))))
-    (company-mode 1)
-    (setq
-     company-c-headers-path-system
-     (append y/c-headers-path-system
-             company-c-headers-path-system)
-     company-c-headers-path-user
-     (append y/c-headers-path-user
-             company-c-headers-path-user)
-     flycheck-clang-include-path
-     (append y/c-headers-path-system
-             flycheck-clang-include-path)
-     flycheck-clang-includes
-     (append y/c-headers-path-user
-             flycheck-clang-includes)
-     flycheck-gcc-include-path
-     (append y/c-headers-path-system
-             flycheck-gcc-include-path)
-     flycheck-gcc-includes
-     (append y/c-headers-path-user
-             flycheck-gcc-includes))))
+    (when (require 'company-c-headers nil t)
+      (make-local-variable 'company-c-headers-path-system)
+      (make-local-variable 'company-c-headers-path-user)
+      (setq company-c-headers-path-system
+            (append y/c-headers-path-system company-c-headers-path-system)
+            company-c-headers-path-user
+            (append y/c-headers-path-user company-c-headers-path-user)))
+    (when (require 'flycheck nil t)
+      (setq flycheck-clang-include-path (append y/c-headers-path-system
+                                                flycheck-clang-include-path)
+            flycheck-clang-includes (append y/c-headers-path-user
+                                            flycheck-clang-includes)
+            flycheck-gcc-include-path (append y/c-headers-path-system
+                                              flycheck-gcc-include-path)
+            flycheck-gcc-includes (append y/c-headers-path-user
+                                          flycheck-gcc-includes)))))
 
 (defun y/project-c-headers-path-adjust()
   "Adjust `y/c-headers-path-system' and `y/c-headers-path-user'."

@@ -725,7 +725,8 @@ for mac compatiblity: https://github.com/purcell/exec-path-from-shell.
   (use-package flycheck
     :diminish
     :init
-    (setq flycheck-emacs-lisp-load-path 'inherit)
+    (setq flycheck-emacs-lisp-load-path 'inherit
+          flycheck-checker-error-threshold 20000)
     :config
     (add-to-list 'flycheck-clang-warnings
                  "no-pragma-once-outside-header")

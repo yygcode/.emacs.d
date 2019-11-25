@@ -16,8 +16,6 @@
 
 ;;; Code:
 
-(require 'yasnippet)
-
 (require 'y-auxiliary)
 (require 'y-keybinds)
 
@@ -26,6 +24,9 @@
 N is place holder."
   (interactive)
   (message "Ignore input key for y/browse mode."))
+
+(defvar y/browse-mode-exit-hook '()
+  "Hooks when exit from browse mode.")
 
 (define-minor-mode y/browse-mode "Browse keybind"
   :lighter " Y/Browse"
@@ -52,7 +53,9 @@ N is place holder."
     ;; Press "M-." jump to one definition without candidates selective
     ;; (define-key map (kbd ".") (key-binding (kbd "M-.")))
     ;; (define-key map (kbd ",") (key-binding (kbd "M-,")))
-    map))
+    map)
+  ;; body
+  (unless y/browse-mode (run-hooks 'y/browse-mode-exit-hook)))
 
 (defun y/browse-mode-on()
   "Active y/browse-mode."
@@ -62,21 +65,23 @@ N is place holder."
 (define-globalized-minor-mode y/browse-global-mode
   y/browse-mode y/browse-mode-on)
 
-(defvar-local y/browse--buffer-yas-enabled nil
-  "`yas-mode' enabled if t, otherwise is nil.  `y/browse-mode' internal use.")
+(defvar-local y/browse--buffer-read-only nil
+  "Record buffer readonly state before browse-mode enabled.")
 
 (defun y/browse-mode-adjust()
   "Browse mode adjust."
-  (and y/browse-mode yas-minor-mode
-       (setq y/browse--buffer-yas-enabled t))
   (if y/browse-mode
-      (when yas-minor-mode
-        (setq y/browse--buffer-yas-enabled t)
-        (yas-minor-mode -1))
-    (when y/browse--buffer-yas-enabled
-      (yas-minor-mode 1)
-      (setq y/browse--buffer-yas-enabled nil))))
+      (or (setq y/browse--buffer-read-only buffer-read-only)
+          (read-only-mode 1))
+    (dolist (b (buffer-list))
+      (with-current-buffer b
+        (unless y/browse--buffer-read-only
+          (read-only-mode -1))))
+    ;; (or y/browse--buffer-read-only
+    ;;     (read-only-mode -1))
+    ))
 (add-hook 'y/browse-mode-hook #'y/browse-mode-adjust)
+(add-hook 'y/browse-mode-exit-hook #'y/browse-mode-adjust)
 
 (defvar y/browse-mode--minibuffer-disabled nil
   "The browse mode disabled by minibuffer or not.")
