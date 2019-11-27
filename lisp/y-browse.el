@@ -19,19 +19,51 @@
 (require 'y-auxiliary)
 (require 'y-keybinds)
 
+(defgroup y/browse nil
+  "Customization group for Y/Browse mode.
+This mode is used to browse code."
+  :package-version '(y/browse . "1.0")
+  :group 'local
+  :prefix "y/browse")
+
+(defcustom y/browse-major-modes
+  '(c-mode c++-mode emacs-lisp-mode lisp-interaction-mode)
+  "Major-mode list if Y/Browse mode enabled."
+  :group 'y/browse
+  :type 'list)
+
 (defun y/browse--ignore-key(&optional n)
   "`y/browse-mode' is used to browse code.  Ignore all input by default.
 N is place holder."
   (interactive)
-  (message "Ignore input key for y/browse mode."))
+  (message "Ignore input key for Y/Browse mode."))
 
-(defvar y/browse-mode-exit-hook '()
-  "Hooks when exit from browse mode.")
+(defvar-local y/browse--set-buffer-read-only nil
+  "Set to t if `buffer-read-only' state is set by `y/browse-mode'.")
+
+(defvar-local y/browse--clear-yas-mode nil
+  "Set to t if `yas-minor-mode' state is cleared by `y/browse-mode'.")
+
+(defun y/browse--adjust-buffer(browse-mode-enabled)
+  "Adjust current buffer relative modes depends on BROWSE-MODE-ENABLED."
+  (if browse-mode-enabled
+      (progn
+        (and (setq y/browse--set-buffer-read-only (not buffer-read-only))
+             (read-only-mode 1))
+        (and (featurep 'yasnippet)
+             (setq y/browse--clear-yas-mode yas-minor-mode)
+             (yas-minor-mode -1)))
+    (progn
+      (when y/browse--set-buffer-read-only
+        (read-only-mode -1)
+        (setq y/browse--set-buffer-read-only nil))
+      (when y/browse--clear-yas-mode
+        (yas-minor-mode +1)
+        (setq y/browse--clear-yas-mode nil)))))
 
 (define-minor-mode y/browse-mode "Browse keybind"
   :lighter " Y/Browse"
   :init-value nil
-  :global t
   :keymap
   (let ((map (make-sparse-keymap)))
     ;; set all to do nothing
@@ -55,53 +87,28 @@ N is place holder."
     ;; (define-key map (kbd ",") (key-binding (kbd "M-,")))
     map)
   ;; body
-  (unless y/browse-mode (run-hooks 'y/browse-mode-exit-hook)))
+  (y/browse--adjust-buffer y/browse-mode))
 
 (defun y/browse-mode-on()
   "Active y/browse-mode."
   (interactive)
-  (y/browse-mode 1))
+  (when (memq major-mode y/browse-major-modes)
+    (y/browse-mode +1)))
 
 (define-globalized-minor-mode y/browse-global-mode
   y/browse-mode y/browse-mode-on)
 
-(defvar-local y/browse--buffer-read-only nil
-  "Record buffer readonly state before browse-mode enabled.")
-
-(defun y/browse-mode-adjust()
-  "Browse mode adjust."
-  (if y/browse-mode
-      (or (setq y/browse--buffer-read-only buffer-read-only)
-          (read-only-mode 1))
-    (dolist (b (buffer-list))
-      (with-current-buffer b
-        (unless y/browse--buffer-read-only
-          (read-only-mode -1))))
-    ;; (or y/browse--buffer-read-only
-    ;;     (read-only-mode -1))
-    ))
-(add-hook 'y/browse-mode-hook #'y/browse-mode-adjust)
-(add-hook 'y/browse-mode-exit-hook #'y/browse-mode-adjust)
-
-(defvar y/browse-mode--minibuffer-disabled nil
-  "The browse mode disabled by minibuffer or not.")
-
-(defun y/browse-mode--minibuffer-maybe-deactivate()
-  "Auto disable y/browse-mode in minibuffer."
-  (when y/browse-mode
-    (y/browse-mode -1)
-    (setq y/browse-mode--minibuffer-disabled t)))
-
-(defun y/browse-mode--minibuffer-maybe-activate()
-  "Auto disable y/browse-mode in minibuffer."
-  (when y/browse-mode--minibuffer-disabled
-    (y/browse-mode 1)
-    (setq y/browse-mode--minibuffer-disabled nil)))
-
-(add-hook 'minibuffer-setup-hook
-          #'y/browse-mode--minibuffer-maybe-deactivate)
-(add-hook 'minibuffer-exit-hook
-          #'y/browse-mode--minibuffer-maybe-activate)
+(defun y/browse-mode--global-hook()
+  "Restore all buffers minor modes when `y/browse-global-mode' disabled."
+  (unless y/browse-global-mode
+    (let ((bl (buffer-list)))
+      ;; restore old minor mode for all buffers.
+      (dolist (b (buffer-list))
+        (with-current-buffer b
+          (when (memq major-mode y/browse-major-modes)
+            (y/browse--adjust-buffer nil))
+          (y/browse--adjust-buffer y/browse-global-mode))))))
+(add-hook 'y/browse-global-mode-hook #'y/browse-mode--global-hook)
 
 (defun y/browse-set-key(key command)
   "Give KEY a `y/basic-keybind-mode' binding as COMMAND.

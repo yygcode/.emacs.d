@@ -731,7 +731,9 @@ for mac compatiblity: https://github.com/purcell/exec-path-from-shell.
     (add-to-list 'flycheck-clang-warnings
                  "no-pragma-once-outside-header")
     :hook
-    (after-init    . global-flycheck-mode))
+    (after-init    . global-flycheck-mode)
+    ;; too many errors, disabled.
+    (c-mode-common . (lambda() (flycheck-mode -1))))
 #+end_src
 
 ** highlight parenthesis
@@ -847,7 +849,7 @@ Smartparens is a minor mode for dealing with pairs in Emacs.
     ("M-f" . sp-forward-symbol)
     ("M-b" . sp-backward-symbol)
     (:map y/browse-mode-map
-          ("<tab>" . sp-forward-symbol))
+          ("TAB" . sp-forward-symbol))
     :hook
     (after-init     . smartparens-global-mode)
     (after-init     . show-smartparens-global-mode)
