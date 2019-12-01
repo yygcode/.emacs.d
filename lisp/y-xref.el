@@ -1,12 +1,12 @@
-;;; ~/.emacs.d/lisp/y-xref.el --- Cross reference
+;;; y-xref.el --- Cross reference -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2020 yonggang.yyg<yygcode@gmail.com>, <cppgp@qq.com>
+;; Copyright (C) 2017-2020 yonggang.yyg<yygcode@gmail.com>
 
 ;; Author: yonggang.yyg<yygcode@gmail.com>
 ;; Maintainer: yonggang.yyg<yygcode@gmail.com>
 ;; Keyword: Emacs Company Configuration
-;; Homepage: https://ycode.org; http://ycode.org;
-;; URL: http://github.com/yygcode/.emacs.d
+;; Homepage: https://ycode.org
+;; URL: https://github.com/yygcode/.emacs.d
 
 ;; SPDX-License-Identifier: GPL-2.0-or-later
 

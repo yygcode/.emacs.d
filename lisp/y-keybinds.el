@@ -83,7 +83,7 @@ Disable if ARG is negative, enable if ARG is positive, otherwise toggle it."
     (define-key map (kbd "C-x C-n") #'next-buffer)
 
     ;; edit
-    (define-key map (kbd "C-c C-c") #'y/comment-or-uncomment)
+    ;; (define-key map (kbd "C-c C-c") #'y/comment-or-uncomment)
     (define-key map (kbd "M-d") #'y/delete-word)
     (define-key map (kbd "M-<backspace>") #'y/backward-delete-word)
     (define-key map (kbd "M-<DEL>") #'y/backward-delete-word)

@@ -1,15 +1,17 @@
-;;; y-auxiliary.el --- Misc Auxiliary Routines
+;;; y-auxiliary.el --- Misc Auxiliary Routines -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2018 yanyg<yygcode@gmail.com>
 
-;; Author: yanyg<yygcode@gmail.com>
-;; Maintainer: yanyg<yygcode@gmail.com>
-;; Keyword: Emacs Initialization Customization Configuration
-;; URL: https://ycode.org; http://ycode.org
+;; Author: yonggang.yyg<yygcode@gmail.com>
+;; Maintainer: yonggang.yyg<yygcode@gmail.com>
+;; Keyword: Emacs Enhanced Macros
+;; URL: https://ycode.org
 
 ;;; Commentary:
 
-;; Common Routines
+;; Common Routines.
+;; Do not use external package (not builtin) functions in this file.
+;; Package management MAY not initialized here.
 
 ;;; Code:
 
@@ -20,6 +22,11 @@
 (require 'elisp-mode)
 (require 'lisp-mode)
 (require 'ielm)
+
+(defconst y/autofiles-directory
+  (expand-file-name ".autofiles/" user-emacs-directory)
+  "Directory for auto generated files from misc features.
+Such as auto-save, bookmark, undo-tree.")
 
 (defmacro y/inc(n)
   "Increment N."
@@ -59,6 +66,14 @@ Use `delete' to remove from SEQ."
     (dolist (l args)
       (when l
         (throw 'final l)))))
+
+(defun y/make-directory(dir)
+  "Make directory DIR if not exist.
+Return t if success, otherwise return nil."
+  (or (file-exists-p dir)
+      (make-directory dir t))
+  (or (file-directory-p dir)
+      (warn "Directory `%s' exists but is not a directory" dir)))
 
 (defmacro y/file-replace-extension(filename extension)
   "Replace FILENAME suffix(extension) to EXTENSION."
@@ -178,21 +193,6 @@ Use current line if no active region."
       (add-hook 'after-make-frame-functions func)
     (add-hook 'after-init-hook func)))
 
-;; quelpa self update
-(defun y/upgrade-quelpa()
-  "Upgrade quelpa package."
-  (interactive)
-  (unless (package-installed-p 'quelpa)
-    (user-error "Package `quelpa' does not installed"))
-  (require 'quelpa)
-  (quelpa-self-upgrade)
-  (quelpa-upgrade)
-  (quelpa-checkout-melpa)
-  (with-temp-buffer
-    (url-insert-file-contents
-     "https://raw.github.com/quelpa/quelpa/master/bootstrap.el")
-    (eval-buffer)))
-
 (defun y/date(&optional insert)
   "Show Today Date in echo area.  Insert to current buffer if INSERT."
   (interactive "P")
@@ -266,7 +266,9 @@ will be killed."
   "Add SITES to environment `no_proxy'."
   (let* ((no-proxy-sites
           (let ((env (getenv "no_proxy")))
-            (and env (split-string env ",")))))
+            (and env (split-string env ","))))
+         ;; dummy var only for eliminating free variable warning.
+         add-sites)
     (cl-labels
         ((add-sites (sites)
           (dolist (s sites)
@@ -282,6 +284,17 @@ will be killed."
           no-proxy-sites))
       (add-sites sites))
     (y/env-set "no_proxy" (mapconcat 'identity no-proxy-sites ",") t)))
+
+(defun y/string-from-file(filename)
+  "Return FILENAME content in string."
+  (let ((s nil))
+    (when (and (stringp filename)
+               (file-readable-p filename)
+               (file-regular-p filename))
+      (with-temp-buffer
+        (insert-file-contents filename)
+        (setq s (buffer-string))))
+    s))
 
 (provide 'y-auxiliary)
 

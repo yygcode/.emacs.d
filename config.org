@@ -49,6 +49,8 @@ https://www.gnu.org/software/emacs/manual/html_node/elisp/Simple-Packages.html
 
   ;;; Code:
 
+  ;; package management
+  (require 'y-package)
 #+end_src
 
 * Profiler
@@ -137,10 +139,9 @@ analyze config.org time proportion.
 #+end_src
 
 * Auxiliary
-** diminish
-Diminish mode-line display of minor mode MODE to TO-WHAT (default "").
+Misc helper routines.
 #+begin_src emacs-lisp
-  (use-package diminish)
+  (require 'y-auxiliary)
 #+end_src
 
 * keybinds
@@ -179,9 +180,10 @@ contents dynamically.
 #+begin_src emacs-lisp
   (use-package keyfreq
     :init
-    (setq keyfreq-file (expand-file-name ".emacs.keyfreq" user-emacs-directory)
-          keyfreq-file-lock (expand-file-name ".emacs.keyfreq.lock"
-                                              user-emacs-directory))
+    (setq keyfreq-file (concat y/autofiles-directory
+                               ".emacs.keyfreq")
+          keyfreq-file-lock (concat y/autofiles-directory
+                                    ".emacs.keyfreq.lock"))
     (keyfreq-mode 1)
     (keyfreq-autosave-mode 1))
   (use-package command-log-mode
@@ -232,70 +234,21 @@ this command.
           ("C-c M-h" . which-key-C-h-dispatch)))
 #+end_src
 
+* Editor
+Editor behaviors.
+#+begin_src emacs-lisp
+  (require 'y-editor)
+#+end_src
+
 * Display
 ** behavior
 #+begin_src emacs-lisp
-  ;; command history.
-  (savehist-mode 1)
-  ;; auto revert if buffer not modified. In git repo we always need it.
-  (setq global-auto-revert-non-file-buffers t)
-  (global-auto-revert-mode t)
-  (setq auto-revert-verbose nil) ;; disable reverting buffer message
-  (global-hl-line-mode t)
 
-  (setq line-move-visual nil)
-  (setq read-quoted-char-radix 16)
-
-  (setq find-file-suppress-same-file-warnings t)
-
-  ;; simplify prompt
-  (defalias 'yes-or-no-p 'y-or-n-p)
-
-  ;; No backup, use git maintain file version
-  (setq-default make-backup-files nil)
-  (setq-default indent-tabs-mode nil)
-  (setq-default case-fold-search t)
-
-  (setq split-width-threshold 180
-        split-height-threshold 100)
-
-  ;; nice scrolling
-  (setq scroll-margin 0
-        scroll-conservatively 1000
-        scroll-preserve-screen-position t)
-
-  (setq kill-ring-max 500
-        kill-whole-line t)
-  (setq confirm-kill-processes nil)
-
-  (delete-selection-mode t)
-  (setq large-file-warning-threshold (* 256 1024 1024)) ;; 256MB
-  (setq default-directory "~/")
-
-  ;; Restore very slow in Windows, disable it
-  (unless (or (string= system-type "winows-nt")
-              (getenv "EMACS_Y_INTERNAL_ESUP_PROFILER"))
-    (setq desktop-path `(,user-emacs-directory)
-          desktop-dirname user-emacs-directory
-          desktop-load-locked-desktop nil ;; Do not load if locked
-          desktop-save t ;; no ask
-          ;; restoring frame is generally unexpected
-          desktop-restore-frames nil)
-    (desktop-save-mode 1))
-
-  (setq-default
-   inhibit-splash-screen t
-   initial-scratch-message
-   (concat
-    ";; This buffer is for text that is not saved, and for Lisp evaluation.\n"
-    ";; To create a file, visit it with C-x C-f and enter text in its buffer.\n\n"
-    ";; Happy hacking " (or user-login-name "<yanyg>") " - Emacs loves you!\n\n"))
-
+  (require 'display-line-numbers)
   (defun y/line-numbers--face(&optional theme-unused  no-confirm-unused
                                         no-enable-unused)
     "Line numbers config."
     (interactive)
-    (require 'display-line-numbers)
     (setq display-line-numbers-grow-only t)
     (set-face-attribute 'line-number nil
                         :inherit 'linum
@@ -313,9 +266,6 @@ this command.
   (y/line-numbers--face)
 
   (add-hook 'after-change-major-mode-hook #'display-line-numbers-mode)
-
-  ;; enable useful commands
-  (put 'downcase-region 'disabled nil)
 
 #+end_src
 
@@ -478,6 +428,8 @@ https://emacs.stackexchange.com/a/3044.
 - Diminish used to hide minor info
 
 #+begin_src emacs-lisp
+  (require 'time)
+  (require 'battery)
   (setq display-time-default-load-average nil
         display-time-format "%k:%M %a" ;; remove %b %d
         display-time-mode t)
@@ -865,6 +817,15 @@ Smartparens is a minor mode for dealing with pairs in Emacs.
 #+begin_src emacs-lisp
   ;; short bindings with a common prefix
   ;; https://github.com/abo-abo/hydra
+  (use-package ivy
+    :diminish
+    ;; :after (hydra swiper counsel) ;; swiper internal use, compile error if absent
+    :init
+    (setq ivy-use-virtual-buffers t
+          ivy-count-format "%d/%d > ")
+    :hook
+    (after-init . ivy-mode))
+
   (use-package swiper
     :bind
     ;; ([remap isearch-backward] . swiper-isearch-backward)
@@ -876,7 +837,14 @@ Smartparens is a minor mode for dealing with pairs in Emacs.
   (use-package counsel
     :diminish
     :init
-    (counsel-mode 1)
+    (setq counsel-describe-function-function #'describe-function
+          counsel-find-file-ignore-regexp
+          (concat
+           ;; filename begins with #
+           "\\(?:\\`[#.]\\)"
+           ;; filename ends with # or ~
+           "\\|\\(?:\\`.+?[#~]\\'\\)"
+           ))
     :bind
     ("C-x C-f" . counsel-find-file)
     ("C-h f"   . counsel-describe-function)
@@ -885,24 +853,9 @@ Smartparens is a minor mode for dealing with pairs in Emacs.
     ("C-c g g" . counsel-git-grep)
     ("C-c g l" . counsel-git-log)
     ("C-c g a" . counsel-ag)
-    ("C-c g g" . counsel-grep))
-
-  (use-package ivy
-    :diminish
-    :after (hydra swiper counsel) ;; swiper internal use, compile error if absent
-    :init
-    (setq ivy-use-virtual-buffers t)
-    (setq ivy-count-format "%d/%d > "
-          counsel-describe-function-function #'describe-function
-          counsel-describe-variable #'help-variable)
-    (setq counsel-find-file-ignore-regexp
-          (concat
-           ;; filename begins with #
-           "\\(?:\\`[#.]\\)"
-           ;; filename ends with # or ~
-           "\\|\\(?:\\`.+?[#~]\\'\\)"
-           ))
-    (ivy-mode 1))
+    ("C-c g g" . counsel-grep)
+    :hook
+    (after-init . counsel-mode))
 #+end_src
 
 ** undo tree
@@ -926,6 +879,12 @@ Visual zap-to-char.
 #+end_src
 
 * Development
+** prog
+#+begin_src emacs-lisp
+  (require 'prog-mode)
+  (define-key prog-mode-map (kbd "C-c C-c") #'y/comment-or-uncomment)
+#+end_src
+
 ** asm
 ** cmake
 *cmake-mode* is major-mode for editing CMake sources.
@@ -1257,7 +1216,7 @@ C++ call graph: https://github.com/beacoder/call-graph
     :init
     (setq sr-speedbar-auto-refresh t
           speedbar-use-images nil
-          sr-speedbar-width-x 10
+          sr-speedbar-width 10
           sr-speedbar-max-width 20
           sr-speedbar-skip-other-window-p t)
     :bind
@@ -1333,7 +1292,6 @@ HTML, CSS and more.
 ** basic
 #+begin_src emacs-lisp
   (use-package org
-    :diminish org
     :init
     (setq org-src-fontify-natively t
           org-support-shift-select t)
@@ -1390,6 +1348,8 @@ HTML, CSS and more.
       (exec-path-from-shell-initialize)))
 
   ;; Copy from https://github.com/bbatsov/prelude/blob/master/core/prelude-macos.el
+  (defvar mac-command-modifier)
+  (defvar mac-option-modifier)
   (defun y/swap-meta-and-super()
     "Swap the mapping of Meta and Super.
   Very useful for people using their Mac with a

@@ -1,6 +1,6 @@
-;;; ~/.emacs.d/lisp/y-browse.el --- code BROWSE keybind
+;;; y-browse.el --- Browse code minor mode -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2020 yonggang.yyg<yygcode@gmail.com>, <cppgp@qq.com>
+;; Copyright (C) 2017-2020 yonggang.yyg<yygcode@gmail.com>
 
 ;; Author: yonggang.yyg<yygcode@gmail.com>
 ;; Maintainer: yonggang.yyg<yygcode@gmail.com>
@@ -27,7 +27,8 @@ This mode is used to browse code."
   :prefix "y/browse")
 
 (defcustom y/browse-major-modes
-  '(c-mode c++-mode emacs-lisp-mode lisp-interaction-mode)
+  '(c-mode c++-mode emacs-lisp-mode lisp-interaction-mode
+    org-mode)
   "Major-mode list if Y/Browse mode enabled."
   :group 'y/browse
   :type 'list)
@@ -50,6 +51,7 @@ N is place holder."
       (progn
         (and (setq y/browse--set-buffer-read-only (not buffer-read-only))
              (read-only-mode 1))
+        (defvar yas-minor-mode) ;; declaration
         (and (featurep 'yasnippet)
              (setq y/browse--clear-yas-mode yas-minor-mode)
              (yas-minor-mode -1)))

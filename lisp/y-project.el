@@ -1,11 +1,11 @@
-;;; ~/.emacs.d/lisp/y-project.el --- Project Config
+;;; y-project.el --- Project Config -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2020 yonggang.yyg<yygcode@gmail.com>, <cppgp@qq.com>
+;; Copyright (C) 2017-2020 yonggang.yyg<yygcode@gmail.com>
 
 ;; Author: yonggang.yyg<yygcode@gmail.com>
 ;; Maintainer: yonggang.yyg<yygcode@gmail.com>
 ;; Keyword: Emacs Company Configuration
-;; Homepage: https://ycode.org; http://ycode.org;
+;; Homepage: https://ycode.org
 ;; URL: http://github.com/yygcode/.emacs.d
 
 ;; SPDX-License-Identifier: GPL-2.0-or-later
@@ -17,6 +17,11 @@
 ;;; Code:
 
 (require 'y-auxiliary)
+(require 'y-package)
+
+(y/packages-install 'company-c-headers 'flycheck)
+(require 'company-c-headers)
+(require 'flycheck)
 
 (use-package projectile
   :diminish
@@ -24,12 +29,18 @@
   (setq projectile-sort-order 'recentf-active
         projectile-enable-caching t
         projectile-indexing-method 'alien
-        projectile-completion-system 'ivy)
-  (projectile-mode 1)
-  ;; use counsel
+        projectile-completion-system 'ivy
+        projectile-cache-file (concat y/autofiles-directory
+                                      "projectile.cache")
+        projectile-known-projects-file (concat y/autofiles-directory
+                                        "projectile-bookmarks.eld"))
+  (projectile-mode +1)
+  ;; use helm/counsel-projectile.
   ;; :bind
   ;; ("C-c p" . projectile-command-map)
   )
+
+(require 'projectile)
 
 (use-package helm-projectile
   :init
@@ -72,17 +83,6 @@
 ;; path-system: src/include ../third-party/include
 ;; path-user: .
 
-(defun y/string-from-file(filename)
-  "Return FILENAME content in string."
-  (let ((s nil))
-    (when (and (stringp filename)
-               (file-readable-p filename)
-               (file-regular-p filename))
-      (with-temp-buffer
-        (insert-file-contents filename)
-        (setq s (buffer-string))))
-    s))
-
 (defvar-local y/c-headers-path-system nil
   "List of paths to search for system.")
 
@@ -91,7 +91,7 @@
 
 ;; .c-headers-path format:
 ;; system: include
-(defun y/c-header-adjust-from-string(root str)
+(defun y/project--c-header-adjust-from-string(root str)
   "Adjust c header path from string STR.
 ROOT is the default directory for relative path.
 
@@ -102,7 +102,7 @@ system:
 
 user:
 ."
-  (let ((l (split-string str "\n"))
+  (let ((l (and (stringp str) (split-string str "\n")))
         (type-switch t)(type-path nil)(do-append))
     (dolist (v l)
       (setq do-append t)
@@ -115,6 +115,8 @@ user:
            (setq type-switch nil
                  do-append nil)
            ))
+        ((pred (string-prefix-p "#")) ;; #.* is comment line
+         (setq do-append nil))
         ('""
          (setq type-switch t
                do-append nil)))
@@ -124,14 +126,12 @@ user:
         (if (equal type-path 'system)
             (push v y/c-headers-path-system)
           (push v y/c-headers-path-user))))
-    (when (require 'company-c-headers nil t)
       (make-local-variable 'company-c-headers-path-system)
       (make-local-variable 'company-c-headers-path-user)
       (setq company-c-headers-path-system
             (append y/c-headers-path-system company-c-headers-path-system)
             company-c-headers-path-user
-            (append y/c-headers-path-user company-c-headers-path-user)))
-    (when (require 'flycheck nil t)
+            (append y/c-headers-path-user company-c-headers-path-user))
       (setq flycheck-clang-include-path (append y/c-headers-path-system
                                                 flycheck-clang-include-path)
             flycheck-clang-includes (append y/c-headers-path-user
@@ -139,7 +139,7 @@ user:
             flycheck-gcc-include-path (append y/c-headers-path-system
                                               flycheck-gcc-include-path)
             flycheck-gcc-includes (append y/c-headers-path-user
-                                          flycheck-gcc-includes)))))
+                                          flycheck-gcc-includes))))
 
 (defun y/project-c-headers-path-adjust()
   "Adjust `y/c-headers-path-system' and `y/c-headers-path-user'."
@@ -147,8 +147,25 @@ user:
              (projectile-project-root))
     (let* ((root (projectile-project-root))
            (s (y/string-from-file (concat root ".c-headers-path"))))
-      (y/c-header-adjust-from-string root s))))
+      (y/project--c-header-adjust-from-string root s))))
 (add-hook 'c-mode-common-hook #'y/project-c-headers-path-adjust)
+
+(defun y/project-adjust-readonly()
+  "Auto `buffer-read-only' if .readonly exists.
+All directory from current to project root or root of
+filesystem will be checked."
+  (when buffer-file-name
+    (let ((root (or (projectile-project-root)
+                    (expand-file-name "~/")))
+          (rodir (locate-dominating-file
+                  buffer-file-name ".readonly")))
+      (and rodir
+           (setq rodir (file-truename rodir))
+           ;; both root and rodir are truename (absolute, no symbolic.)
+           (string-prefix-p root rodir)
+           (read-only-mode +1)))))
+(add-hook 'prog-mode-hook #'y/project-adjust-readonly)
+(add-hook 'text-mode-hook #'y/project-adjust-readonly)
 
 (provide 'y-project)
 
