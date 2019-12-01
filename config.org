@@ -905,6 +905,12 @@ Put all in y-xref.el
 #+end_src
 
 ** c/c++
+*** keybind
+#+begin_src emacs-lisp
+  (require 'cc-mode)
+  (define-key c-mode-map (kbd "C-c C-c") #'y/comment-or-uncomment)
+  (define-key c++-mode-map (kbd "C-c C-c") #'y/comment-or-uncomment)
+#+end_src
 *** c++ modern font
 *modern-cpp-font-lock* Syntax highlighting support for "Modern C++" - until
 C++20 and Technical Specification.
@@ -1321,6 +1327,30 @@ HTML, CSS and more.
     :diminish
     :hook
     (org-src-mode . (lambda() (flycheck-mode -1))))
+#+end_src
+
+** bullets
+- Homepage: [[https://github.com/sabof/org-bullets][GitHub Org Bullets]]
+- FIXME: Win7 Ultimate CN version can not show heading bullets low than level 3
+#+begin_src emacs-lisp
+  (use-package org-bullets
+    :hook
+    (org-mode . org-bullets-mode))
+#+end_src
+
+** pomodoro
+   :LOGBOOK:
+   CLOCK: [2019-12-01 Sun 22:03]
+   :END:
+- https://github.com/lolownia/org-pomodoro
+#+begin_src emacs-lisp
+  (use-package org-pomodoro
+    :pin melpa
+    :init
+    (setq org-pomodoro-length 30
+          org-pomodoro-format "%s"))
+
+  (use-package redtick)
 #+end_src
 
 * Platform
