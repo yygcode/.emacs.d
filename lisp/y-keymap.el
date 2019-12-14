@@ -1,20 +1,18 @@
-;;; y-keybinds.el --- Customized Keybinds
+;;; y-keymap.el --- Custom keymaps  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2018 yanyg<yygcode@gmail.com>
 
 ;; Author: yanyg<yygcode@gmail.com>
 ;; Maintainer: yanyg<yygcode@gmail.com>
-;; Keyword: Emacs Initialization Customization Configuration
+;; Keyword: Emacs Custom Keymap
 ;; URL: https://ycode.org
 
 ;; SPDX-License-Identifier: GPL-2.0-or-later
 
 ;;; Commentary:
 
-;; Keybind Conventions
-;; Reference from Manual
 ;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Key-Binding-Conventions.html
-;; DO NOT Rules:
+;; Key binding conventions - Do Not Rules
 ;; 1. Don't bind C-h following any prefix character; If you don't bind C-h,
 ;;    it is automatically available as a help character for listing the
 ;;    subcommands of the prefix character;
@@ -24,41 +22,59 @@
 
 ;; Important Extension:
 ;; 1. C-x C-x: Reserved to provide more extension;
-;;    `exchange-dot-and-mark' binds to 'C-x C-x C-x';
-;; 2. C-o: Used to `other-window'; `open-line' binds to 'C-x C-x';
+;;    `exchange-point-and-mark' binds to 'C-x C-x C-x';
+;; 2. C-o: Used to `other-window'; `open-line' binds to 'C-x C-x C-o';
 ;; 3. Enhance keyboard: <f1>-<f9>: C-x C-x [1-9];
-
-;; Common Routines
 
 ;;; Code:
 
 (require 'y-auxiliary)
+(require 'y-package)
 
-(defun y/overriding-map-alist-by-basic-keybind(&optional arg)
-  "Enable or disable overriding map alist by Y/BASIC-KEYBIND depends on ARG.
-Disable if ARG is negative, enable if ARG is positive, otherwise toggle it."
-  (interactive)
-  (let ((bkm (cons 'y/basic-keybind-mode
-                   y/basic-keybind-mode-map)))
-    (unless (and arg (integerp arg) (y/nzerop arg))
-      (setq arg
-            (if (member bkm minor-mode-overriding-map-alist)
-                -1
-              1)))
-    (if (equal arg -1)
-        (y/delete bkm minor-mode-overriding-map-alist)
-      (add-to-list 'minor-mode-overriding-map-alist bkm)))
-  (when (called-interactively-p 'interactive)
-    (message "%s y/basic-keybind overriding map."
-             (if (< 0 arg) "Enable" "Disable"))))
+(require 'cl-lib)
 
-(defvar y/basic-keybind-non-overriding-major-modes
+(y/package-install 'use-package)
+(require 'use-package)
+
+(defvar y/emulation-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-o") #'other-window)
+    (define-key map (kbd "C-x C-x C-o") #'open-line)
+    (define-key map (kbd "C-x C-x C-x") #'exchange-point-and-mark)
+    map)
+  "Keymap will be added to `emulation-mode-map-alists' for each buffer.")
+
+(cl-pushnew (list (cons 'y/emulation-map y/emulation-map))
+            emulation-mode-map-alists)
+
+(eval-and-compile
+ (y/define-set-key-function
+  y/emulation-set-key y/emulation-unset-key y/emulation-map))
+
+(defgroup y/keymap nil
+  "Custom keymap"
+  :prefix "y/keymap-"
+  :group 'y/keymap)
+
+(defcustom y/keymap-major-modes-disabled
   '(minibuffer-inactive-mode)
-  "No y/basic-keybind overriding map major modes list.")
+  "List of major-modes to disable y/keymap."
+  :type '(list minibuffer-inactive-mode)
+  :version "1.0"
+  :group 'y/keymap)
 
-(define-minor-mode y/basic-keybind-mode "Basic keybind"
-  :lighter " y-basic-keybind"
-  :init-value t
+(defcustom y/keymap-as-use-package-map
+  t
+  "Use `y/keymap-mode-map' as `use-package' default map.
+The original `use-package' default map is `global-map'"
+  :type 'boolean
+  :version "1.0"
+  :group 'y/keymap)
+
+(define-minor-mode y/keymap-mode "Basic custom keymap"
+  :lighter " Y/Keymap"
+  :init-value nil
+  :group 'y/keymap
   :keymap
   (let ((map (make-sparse-keymap)))
     ;; keyboard enhancement
@@ -124,61 +140,37 @@ Disable if ARG is negative, enable if ARG is positive, otherwise toggle it."
      map "C-x C-x d c" (describe-copying))
     map)
   ;; body
-  (unless (member major-mode y/basic-keybind-non-overriding-major-modes)
-      (cond ((and y/basic-keybind-mode (featurep 'y-keybinds))
-             ;; ensure basic keybind precedence/order.
-             (y/overriding-map-alist-by-basic-keybind 1))
-            (t
-             (y/overriding-map-alist-by-basic-keybind -1)))))
+  )
 
-(defun y/basic-keybind-mode-on()
-  "Active y/basic-keybind-mode."
-  (interactive)
-  (y/basic-keybind-mode 1))
+(defun y/keymap-mode-on()
+  "Enable y/keymap-mode if applicable for the buffer.
+Disabled if `major-mode' of buffer is not the member of
+list `y/keymap-major-modes-disabled'."
+  (unless (member major-mode y/keymap-major-modes-disabled)
+    (y/keymap-mode +1)))
 
-(define-globalized-minor-mode y/basic-keybind-global-mode
-  y/basic-keybind-mode y/basic-keybind-mode-on)
+(define-globalized-minor-mode
+  y/keymap-global-mode y/keymap-mode y/keymap-mode-on)
 
-(y/basic-keybind-global-mode 1)
+(eval-and-compile
+  (y/define-set-key-function
+   y/keymap-set-key y/keymap-unset-key y/keymap-mode-map))
 
-(dolist (hook '(minibuffer-inactive-mode-hook))
-  (add-hook hook
-            #'(lambda()
-                "Diable y/basic-keybind overriding map."
-                (y/overriding-map-alist-by-basic-keybind -1))))
+(y/keymap-global-mode +1)
 
-(when (featurep 'use-package)
-  ;; use y/basick-keybind-mode-map as default map.
-  (defun y/use-package-handler/:bind(args)
-    "Use `y/basic-keybind-mode-map' if no :map specified."
-    (let ((v (nth 2 args)))
-      (when (and (listp v) (not (eq (car v) :map)))
-        (push 'y/basic-keybind-mode-map v)
-        (push :map v)
-        (setf (nth 2 args) v))
-      args))
-  (advice-add 'use-package-handler/:bind
-              :filter-args #'y/use-package-handler/:bind))
+(defun y/use-package-handler/:bind(args)
+  "Use `y/keymap-mode-map' if no :map specified.
+ARGS is the argument list."
+  (let ((v (nth 2 args)))
+    (when (and y/keymap-as-use-package-map
+               (listp v) (not (eq (car v) :map)))
+      (push 'y/keymap-mode-map v)
+      (push :map v)
+      (setf (nth 2 args) v))
+    args))
+(advice-add 'use-package-handler/:bind
+            :filter-args #'y/use-package-handler/:bind)
 
-(defun y/basic-set-key(key command)
-  "Give KEY a `y/basic-keybind-mode' binding as COMMAND.
-Like as `global-set-key' but use y/basic-keybind-mode-map."
-  (interactive
-   (let* ((menu-prompting nil)
-          (key (read-key-sequence "Set key in y/basic-keybind: ")))
-     (list key
-           (read-command (format "Set key %s to command: "
-                                 (key-description key))))))
-  (or (vectorp key) (stringp key)
-      (signal 'wrong-type-argument (list 'arrayp key)))
-  (define-key y/basic-keybind-mode-map key command))
+(provide 'y-keymap)
 
-(defun y/basic-unset-key (key)
-  "Remove a `y/basic-keybind-mode' binding of KEY.
-KEY is a string or vector representing a sequence of keystrokes."
-  (interactive "kUnset key : ")
-  (y/basic-set-key key nil))
-
-(provide 'y-keybinds)
-
-;;; y-keybinds.el ends here
+;;; y-keymap.el ends here

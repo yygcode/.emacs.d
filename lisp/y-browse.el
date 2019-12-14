@@ -17,7 +17,7 @@
 ;;; Code:
 
 (require 'y-auxiliary)
-(require 'y-keybinds)
+(require 'y-keymap)
 
 (defgroup y/browse nil
   "Customization group for Y/Browse mode.
@@ -33,11 +33,12 @@ This mode is used to browse code."
   :group 'y/browse
   :type 'list)
 
-(defun y/browse--ignore-key(&optional n)
+(defun y/browse--ignore-key(&optional _)
   "`y/browse-mode' is used to browse code.  Ignore all input by default.
 N is place holder."
   (interactive)
-  (message "Ignore input key for Y/Browse mode."))
+  (message "Ignore input key 0x%x(%c) in Y/Browse mode."
+           last-input-event last-input-event))
 
 (defvar-local y/browse--set-buffer-read-only nil
   "Set to t if `buffer-read-only' state is set by `y/browse-mode'.")
@@ -83,10 +84,6 @@ N is place holder."
     (y/count-loop
      i 97 122 nil
      (define-key map (make-vector 1 i) (make-vector 1 (- i 96))))
-    ;; TODO(yonggang.yyg): Follow definition will discard interactive feature.
-    ;; Press "M-." jump to one definition without candidates selective
-    ;; (define-key map (kbd ".") (key-binding (kbd "M-.")))
-    ;; (define-key map (kbd ",") (key-binding (kbd "M-,")))
     map)
   ;; body
   (y/browse--adjust-buffer y/browse-mode))
@@ -103,36 +100,21 @@ N is place holder."
 (defun y/browse-mode--global-hook()
   "Restore all buffers minor modes when `y/browse-global-mode' disabled."
   (unless y/browse-global-mode
-    (let ((bl (buffer-list)))
-      ;; restore old minor mode for all buffers.
-      (dolist (b (buffer-list))
-        (with-current-buffer b
-          (when (memq major-mode y/browse-major-modes)
-            (y/browse--adjust-buffer nil))
-          (y/browse--adjust-buffer y/browse-global-mode))))))
+    ;; restore old minor mode for all buffers.
+    (dolist (b (buffer-list))
+      (with-current-buffer b
+        (when (memq major-mode y/browse-major-modes)
+          (y/browse--adjust-buffer nil))
+        (y/browse--adjust-buffer y/browse-global-mode)))))
 (add-hook 'y/browse-global-mode-hook #'y/browse-mode--global-hook)
 
-(defun y/browse-set-key(key command)
-  "Give KEY a `y/basic-keybind-mode' binding as COMMAND.
-Like as `global-set-key' but use y/browse-mode-map."
-  (interactive
-   (let* ((menu-prompting nil)
-          (key (read-key-sequence "Set key in y/browse-mode-map: ")))
-     (list key
-           (read-command (format "Set key %s to command: "
-                                 (key-description key))))))
-  (or (vectorp key) (stringp key)
-      (signal 'wrong-type-argument (list 'arrayp key)))
-  (define-key y/browse-mode-map key command))
+(eval-and-compile
+  (y/define-set-key-function
+   y/browse-set-key y/browse-unset-key
+   y/browse-mode-map))
 
-(defun y/browse-unset-key (key)
-  "Remove a `y/browse-keybind-mode' binding of KEY.
-KEY is a string or vector representing a sequence of keystrokes."
-  (interactive "kUnset key : ")
-  (y/browse-set-key key nil))
-
-(y/basic-set-key (kbd "C-x C-x C-q") #'y/browse-global-mode)
-(y/basic-set-key (kbd "C-x C-x q") #'y/browse-global-mode)
+(y/emulation-set-key (kbd "C-x C-x C-q") #'y/browse-global-mode)
+(y/emulation-set-key (kbd "C-x C-x q") #'y/browse-global-mode)
 
 (add-hook 'after-init-hook
           #'(lambda()

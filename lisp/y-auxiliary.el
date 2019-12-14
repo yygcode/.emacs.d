@@ -187,6 +187,52 @@ Use current line if no active region."
   `(dolist (mode y/lisp-modes)
      (funcall ,func mode)))
 
+(defmacro y/define-set-key-function(setfuncname unsetfuncname map)
+  "Define a pair functions to `define-key' in MAP.
+SETFUNCNAME to set key, UNSETFUNCNAME to remove key."
+     `(list
+    (defun ,setfuncname (key command)
+      ,(format "Give KEY a `%s' binding as COMMAND.
+Like as `global-set-key' but use map `%s'." map map)
+      (interactive
+       (let* ((menu-prompting nil)
+              (key (read-key-sequence (format "Set key in %s: " ,map))))
+         (list key
+               (read-command (format "Set key %s to command: "
+                                     (key-description key))))))
+      (or (vectorp key) (stringp key)
+          (signal 'wrong-type-argument (list 'arrayp key)))
+      (define-key ,map key command))
+
+    (defun ,unsetfuncname (key)
+      ,(format "Remov KEY binding from keymap `%s'.
+Like as `global-unset-key' but use map `%s'." map map)
+      (interactive ,(format "kUnset key from %s: " map))
+      (,setfuncname key nil))))
+
+;; (defmacro y/define-set-key-function(setfuncname unsetfuncname map)
+;;   "Define a pair functions to `define-key' in MAP.
+;; SETFUNCNAME to set key, UNSETFUNCNAME to remove key."
+;;   `(list
+;;     (defun ,setfuncname (key command)
+;;       ,(format "Give KEY a `%s' binding as COMMAND.
+;; Like as `global-set-key' but use map `%s'." map map)
+;;       (interactive
+;;        (let* ((menu-prompting nil)
+;;               (key (read-key-sequence (format "Set key in %s: " ,map))))
+;;          (list key
+;;                (read-command (format "Set key %s to command: "
+;;                                      (key-description key))))))
+;;       (or (vectorp key) (stringp key)
+;;           (signal 'wrong-type-argument (list 'arrayp key)))
+;;       (define-key ,map key command))
+
+;;     (defun ,unsetfuncname (key)
+;;       ,(format "Remov KEY binding from keymap `%s'.
+;; Like as `global-unset-key' but use map `%s'." map map)
+;;       (interactive ,(format "kUnset key from %s: " map))
+;;       (,setfuncname key nil))))
+
 (defun y/add-after-init-or-make-frame-hook(func)
   "Add FUNC to after-init or after-make-frame hook depends on daemon mode."
   (if (daemonp)

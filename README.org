@@ -4,6 +4,7 @@
 - Linux and Mac platforms are tested
 - Compatible keybinds in Windows and Terminal
 - C/C++ cross reference and completion
+- zh_CN: README-CN.org
 
 * Files
 - Initialization file: [[file:init.el][init.el]]

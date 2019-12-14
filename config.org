@@ -152,9 +152,9 @@ Misc helper routines.
 - Use default keybind if possible
 
 ** basic keybind
-Turn off minor mode y/basic-keybind-global-mode if you don't like.
+Turn off minor mode y/keymap-global-mode if you don't like.
 #+begin_src emacs-lisp
-  (require 'y-keybinds)
+  (require 'y-keymap)
   (require 'y-browse)
 #+end_src
 
@@ -203,7 +203,7 @@ contents dynamically.
       (add-hook 'pre-command-hook #'view-lossage))
     (setq y/view-lossage--state (not y/view-lossage--state)))
   (define-key
-    y/basic-keybind-mode-map (kbd "C-x C-x l")
+    y/keymap-mode-map (kbd "C-x C-x l")
     #'y/toggle-view-lossage)
 #+end_src
 
@@ -561,7 +561,7 @@ Config for emacs daemon and non-daemon.
   (use-package hydra
     :init
   (defhydra y/window-hydra
-    (y/basic-keybind-mode-map "C-x C-x w")
+    (y/keymap-mode-map "C-x C-x w")
     "window hydra"
     ("=" enlarge-window-horizontally "enlarge-window")
     ("+" enlarge-window-horizontally "enlarge-window")
@@ -892,13 +892,12 @@ Visual zap-to-char.
   (use-package cmake-mode)
 #+end_src
 ** cross-reference
-*** gtags
-*ggtags* and *counsel-gtags* are global wrapper.
 Put all in y-xref.el
 
 - Manual: https://www.gnu.org/software/emacs/manual/html_node/emacs/Xref.html#Xref
 - ggtags github: https://github.com/leoliu/ggtags
 - counsel-gtags github: https://github.com/syohex/emacs-counsel-gtags
+- helm-gtags: https://github.com/syohex/emacs-helm-gtags
 
 #+begin_src emacs-lisp
   (require 'y-xref)
@@ -1368,13 +1367,14 @@ HTML, CSS and more.
 
 ** mac
 #+begin_src emacs-lisp
-  (when (memq window-system '(mac ns x))
-    (use-package exec-path-from-shell
-      :quelpa (exec-path-from-shell :fetcher github
-                                    :repo "purcell/exec-path-from-shell"
-                                    :stable t)
-      :demand t
-      :init
+  (use-package exec-path-from-shell
+    :quelpa (exec-path-from-shell
+	     :fetcher github
+	     :repo "purcell/exec-path-from-shell"
+	     :stable t)
+    :demand t
+    :init
+    (when (memq window-system '(mac ns x))
       (exec-path-from-shell-initialize)))
 
   ;; Copy from https://github.com/bbatsov/prelude/blob/master/core/prelude-macos.el
@@ -1386,10 +1386,10 @@ HTML, CSS and more.
   Windows external keyboard from time to time."
     (interactive)
     (if (eq mac-command-modifier 'super)
-        (progn
-          (setq mac-command-modifier 'meta)
-          (setq mac-option-modifier 'super)
-          (message "Command is now bound to META and Option is bound to SUPER."))
+	(progn
+	  (setq mac-command-modifier 'meta)
+	  (setq mac-option-modifier 'super)
+	  (message "Command is now bound to META and Option is bound to SUPER."))
       (setq mac-command-modifier 'super)
       (setq mac-option-modifier 'meta)
       (message "Command is now bound to SUPER and Option is bound to META.")))
@@ -1418,7 +1418,7 @@ Refer to [[#header][header]] for more details.
 
 #+begin_src emacs-lisp
   ;; mode line cleanup
-  (diminish 'y/basic-keybind-mode)
+  (diminish 'y/keymap-mode)
 
   ;;; config.el ends here
 #+end_src

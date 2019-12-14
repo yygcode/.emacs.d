@@ -19,8 +19,8 @@
 (require 'xref)
 
 (require 'y-auxiliary)
-(require 'y-keybinds)
 (require 'y-browse)
+(require 'y-keymap)
 
 (y/env-set "GTAGSLIBPATH" "/usr")
 
@@ -118,19 +118,21 @@
   :hook
   (c-mode-common . counsel-gtags-mode))
 
-;; obsolete it because semantic is very slow.
-;; Join gtags-find-symbol and semantic-ia-fast-jump smoothly.
-;; (defun y/tags-jump-symbol(pos)
-;;   "Find tag at current point POS, and use current point if POS nil."
-;;   (interactive "d")
-;;   (or pos (setq pos (point)))
-;;   (or (and (semantic-active-p)
-;;            (semantic-ia-fast-jump pos))
-;;       (and (bound-and-true-p counsel-gtags-mode)
-;;            (counsel-gtags-dwim))
-;;       (xref-find-definitions (xref-backend-identifier-at-point
-;;                               (xref-find-backend)))
-;;       (user-error "Could not find symbol at current point")))
+(defun y/xref-dwim()
+  "Find definition at current point."
+  (interactive)
+  (if (memq major-mode y/lisp-modes)
+      (xref-find-definitions (xref-backend-identifier-at-point
+                              (xref-find-backend)))
+    (helm-gtags-dwim)))
+(defun y/xref-pop-stack()
+  "Find definition at current point."
+  (interactive)
+  (if (memq major-mode y/lisp-modes)
+      (xref-pop-marker-stack)
+    (helm-gtags-pop-stack)))
+(y/browse-set-key (kbd ".") #'y/xref-dwim)
+(y/browse-set-key (kbd ",") #'y/xref-pop-stack)
 
 (provide 'y-xref)
 
