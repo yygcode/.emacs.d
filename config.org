@@ -560,16 +560,20 @@ Config for emacs daemon and non-daemon.
 #+begin_src emacs-lisp
   (use-package hydra
     :init
-  (defhydra y/window-hydra
-    (y/keymap-mode-map "C-x C-x w")
-    "window hydra"
-    ("=" enlarge-window-horizontally "enlarge-window")
-    ("+" enlarge-window-horizontally "enlarge-window")
-    ("-" shrink-window-horizontally "shrink-window")
-    ("_" shrink-window-horizontally "shrink-window")
-    ("q" nil "quit from hydra")
-    ("C-g"  nil "quit from hydra")
-    ("RET" nil "quit from hydra")))
+    (defhydra y/window-hydra
+      (y/keymap-mode-map "C-x C-x C-w")
+      "window hydra"
+      ("=" enlarge-window-horizontally "enlarge-window-horizontally")
+      ("+" enlarge-window-horizontally "enlarge-window-horizontally")
+      ("-" shrink-window-horizontally "shrink-window-horizontally")
+      ("_" shrink-window-horizontally "shrink-window-horizontally")
+      (">" enlarge-window "enlarge-window-vertically")
+      ("." enlarge-window "enlarge-window-vertically")
+      ("<" shrink-window "shrink-window-vertically")
+      ("," shrink-window "shrink-window-vertically")
+      ("q" nil "quit from hydra")
+      ("C-g"  nil "quit from hydra")
+      ("RET" nil "quit from hydra")))
 #+end_src
 
 * Efficiency
@@ -791,7 +795,7 @@ Smartparens is a minor mode for dealing with pairs in Emacs.
     ;; ‘sp-local-pair’ might not be defined at runtime
     ;; But when start daemon cause a new error:
     ;;  Eager macro-expansion failure: (void-function sp-local-pair)
-    (y/template-lisp-modes-foreach
+    (y/define-lisp-modes-foreach
      #'(lambda(mode)
          (sp-local-pair mode "'" nil :actions nil)
          (sp-local-pair mode "`" nil :actions nil)))
@@ -1368,10 +1372,6 @@ HTML, CSS and more.
 ** mac
 #+begin_src emacs-lisp
   (use-package exec-path-from-shell
-    :quelpa (exec-path-from-shell
-	     :fetcher github
-	     :repo "purcell/exec-path-from-shell"
-	     :stable t)
     :demand t
     :init
     (when (memq window-system '(mac ns x))
@@ -1386,10 +1386,10 @@ HTML, CSS and more.
   Windows external keyboard from time to time."
     (interactive)
     (if (eq mac-command-modifier 'super)
-	(progn
-	  (setq mac-command-modifier 'meta)
-	  (setq mac-option-modifier 'super)
-	  (message "Command is now bound to META and Option is bound to SUPER."))
+        (progn
+          (setq mac-command-modifier 'meta)
+          (setq mac-option-modifier 'super)
+          (message "Command is now bound to META and Option is bound to SUPER."))
       (setq mac-command-modifier 'super)
       (setq mac-option-modifier 'meta)
       (message "Command is now bound to SUPER and Option is bound to META.")))

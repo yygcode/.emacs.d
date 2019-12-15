@@ -36,6 +36,9 @@
 (y/package-install 'use-package)
 (require 'use-package)
 
+(defvar y/lisp-directory)
+(defvar y/user-init-config)
+
 (defvar y/emulation-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-o") #'other-window)
@@ -106,36 +109,38 @@ The original `use-package' default map is `global-map'"
     (define-key map (kbd "C-x C-x =") #'describe-char)
 
     ;; quick visit
-    (y/template-switch-to-buffer-and-bind "*Help*" map "C-c q h")
-    (y/template-switch-to-buffer-and-bind "*scratch*" map "C-c q s"
-                                          (insert initial-scratch-message)
-                                          (set-buffer-modified-p nil))
-    (y/template-find-file-and-bind user-init-file map "C-c q i")
-    (y/template-find-file-and-bind y/user-init-config map "C-c q c")
-    (y/template-find-file-and-bind y/lisp-directory map "C-c q d")
-    (y/template-find-file-and-bind
+    (y/define-switch-to-buffer-function-and-bind
+     "*Help*" map "C-c q h")
+    (y/define-switch-to-buffer-function-and-bind
+     "*scratch*" map "C-c q s"
+     (insert initial-scratch-message)
+     (set-buffer-modified-p nil))
+    (y/define-find-file-function-and-bind user-init-file map "C-c q i")
+    (y/define-find-file-function-and-bind y/user-init-config map "C-c q c")
+    (y/define-find-file-function-and-bind y/lisp-directory map "C-c q d")
+    (y/define-find-file-function-and-bind
      (y/file-replace-extension y/user-init-config "el")
      map "C-c q C")
-    (y/template-generate-function-and-bind
+    (y/define-function-and-bind
      y/reload-init-file "Reload Emacs init.el"
      map "C-c q R" (load-file user-init-file))
 
-    (y/template-kill-buffer-and-bind "*Help*" map "C-x C-x k h")
+    (y/define-kill-buffer-function-and-bind "*Help*" map "C-x C-x k h")
 
     ;; Emacs helper buffers.
-    (y/template-generate-function-and-bind
+    (y/define-function-and-bind
      y/display-startup-screen "Display startup screen."
      map "C-x C-x d s" (display-startup-screen))
-    (y/template-generate-function-and-bind
+    (y/define-function-and-bind
      y/display-about-screen "Display about screen."
      map "C-x C-x d a" (display-about-screen))
-    (y/template-generate-function-and-bind
+    (y/define-function-and-bind
      y/display-todo "Display TODO of Emacs."
      map "C-x C-x d t" (view-emacs-todo t))
-    (y/template-generate-function-and-bind
+    (y/define-function-and-bind
      y/display-faq "Display FAQ of Emacs."
      map "C-x C-x d f" (view-emacs-FAQ))
-    (y/template-generate-function-and-bind
+    (y/define-function-and-bind
      y/display-copying "Display copying of Emacs."
      map "C-x C-x d c" (describe-copying))
     map)

@@ -79,22 +79,22 @@ Return t if success, otherwise return nil."
   "Replace FILENAME suffix(extension) to EXTENSION."
   `(concat (file-name-sans-extension ,filename) "." ,extension))
 
-(defmacro y/template-find-file(filename)
-  "Generate a function Y/FIND-FILE--FILENAME which is used to open FILENAME."
+(defmacro y/define-find-file-function(filename)
+  "Define a function Y/FIND-FILE--FILENAME which is used to open FILENAME."
   `(defun ,(intern (format "y/find-file--%s" filename)) ()
      ,(format "Call `find-file' `%s'." filename)
      (interactive)
      (find-file ,filename)))
 
-(defmacro y/template-find-file-and-bind(filename map keyseq)
-  "Generate a `find-file' FILENAME function and bind to KEYSEQ in MAP.
+(defmacro y/define-find-file-function-and-bind(filename map keyseq)
+  "Define a `find-file' FILENAME function and bind to KEYSEQ in MAP.
 Use `global-map' if MAP is nil."
   `(define-key
      (y/first-non-nil ,map global-map) ,(kbd keyseq)
-     (y/template-find-file ,filename)))
+     (y/define-find-file-function ,filename)))
 
-(defmacro y/template-switch-to-buffer(buffername &rest body)
-  "Generate a function Y/SWITCH-TO--BUFFERNAME to switch to BUFFERNAME.
+(defmacro y/define-switch-to-buffer-function(buffername &rest body)
+  "Define a function Y/SWITCH-TO--BUFFERNAME to switch to BUFFERNAME.
 Eval BODY if create a new buffer and BODY is non nil."
   `(defun ,(intern (format "y/switch-to--%s" buffername)) ()
      ,(format "Call `switch-to-buffer' `%s'.\nEval %s" buffername
@@ -104,15 +104,16 @@ Eval BODY if create a new buffer and BODY is non nil."
       (when (and (switch-to-buffer ,buffername) newcreate)
         ,@body))))
 
-(defmacro y/template-switch-to-buffer-and-bind(buffername map keyseq &rest body)
-  "Generate a switch to BUFFERNAME function and bind to KEYSEQ in MAP.
+(defmacro y/define-switch-to-buffer-function-and-bind
+    (buffername map keyseq &rest body)
+  "Define a switch to BUFFERNAME function and bind to KEYSEQ in MAP.
 Use `global-map' if MAP is nil.  Eval BODY if non nil."
   `(define-key
      (y/first-non-nil ,map global-map) ,(kbd keyseq)
-     (y/template-switch-to-buffer ,buffername ,@body)))
+     (y/define-switch-to-buffer-function ,buffername ,@body)))
 
-(defmacro y/template-kill-buffer(buffername)
-  "Generate a function Y/KILL-BUFFER--BUFFERNAME to kill BUFFERNAME."
+(defmacro y/define-kill-buffer-function(buffername)
+  "Define a function Y/KILL-BUFFER--BUFFERNAME to kill BUFFERNAME."
   `(defun ,(intern (format "y/switch-to--%s" buffername)) ()
      ,(format "Call `kill-buffer' `%s'." buffername)
      (interactive)
@@ -120,27 +121,27 @@ Use `global-map' if MAP is nil.  Eval BODY if non nil."
        (and (switch-to-buffer ,buffername)
             (kill-buffer)))))
 
-(defmacro y/template-kill-buffer-and-bind(buffername map keyseq)
-  "Generate a `kill-buffer' BUFFERNAME function and bind to KEYSEQ in MAP.
+(defmacro y/define-kill-buffer-function-and-bind(buffername map keyseq)
+  "Define a `kill-buffer' BUFFERNAME function and bind to KEYSEQ in MAP.
 Use `global-map' if MAP is nil."
   `(define-key
      (y/first-non-nil ,map global-map) ,(kbd keyseq)
-     (y/template-kill-buffer ,buffername)))
+     (y/define-kill-buffer-function ,buffername)))
 
-(defmacro y/template-generate-function(func doc &rest body)
-  "Generate a function FUNC with docstring DOC and body BODY."
+(defmacro y/define-function(func doc &rest body)
+  "Define a function FUNC with docstring DOC and body BODY."
   `(defun ,func ()
      ,doc
      (interactive)
      ,@body))
 
-(defmacro y/template-generate-function-and-bind(func doc map keyseq &rest body)
-  "Generate a function FUNC with DOC and BODY, then bind to KEYSEQ in MAP."
+(defmacro y/define-function-and-bind(func doc map keyseq &rest body)
+  "Define a function FUNC with DOC and BODY, then bind to KEYSEQ in MAP."
     `(define-key
        (y/first-non-nil ,map global-map) ,(kbd keyseq)
-       (y/template-generate-function ,func ,doc ,@body)))
+       (y/define-function ,func ,doc ,@body)))
 
-(defmacro y/template-lambda-bind(map keyseq &rest body)
+(defmacro y/define-lambda-bind(map keyseq &rest body)
   "Bind KEYSEQ to MAP, use `global-map' if MAP is nil.  BODY is lambda body."
   `(define-key
      (y/first-non-nil ,map global-map) ,(kbd keyseq)
@@ -182,7 +183,7 @@ Use current line if no active region."
 (dolist (hook (mapcar #'derived-mode-hook-name y/lisp-modes))
   (add-hook hook 'y/lisp-modes--hook-function))
 
-(defmacro y/template-lisp-modes-foreach(func)
+(defmacro y/define-lisp-modes-foreach(func)
   "Execute FUNC with argument mode for each LISP mode."
   `(dolist (mode y/lisp-modes)
      (funcall ,func mode)))
