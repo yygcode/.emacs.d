@@ -78,13 +78,9 @@
 ;; and org is a built-in package, so use-package would ignore org package
 ;; but org-plus-contrib is not installed default, so I think I can force install
 ;; org by routine package-install but failed.
-(use-package org
-  :pin org
-  :init
-  (setq org-support-shift-select t
-        org-src-fontify-natively t))
-(use-package org-plus-contrib
-  :pin org)
+(y/packages-install 'org 'org-plus-contrib)
+(require 'org)
+(require 'ob-tangle)
 
 ;; use env @EMACS_Y_INTERNAL_ESUP_PROFILER to prevent esub reload recursively.
 (when (and (file-exists-p y/user-init-config)
@@ -93,7 +89,8 @@
     (when (file-newer-than-file-p y/user-init-config config-el)
       (require 'ob-tangle)
       (org-babel-tangle-file y/user-init-config config-el))
-    (byte-recompile-file config-el nil 0 t)))
+    (byte-recompile-file config-el nil 0 t)
+    ))
 
 (defconst y/startup-end-seconds (float-time))
 (defconst y/startup-duration-seconds (- y/startup-end-seconds

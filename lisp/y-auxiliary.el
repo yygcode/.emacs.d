@@ -147,6 +147,13 @@ Use `global-map' if MAP is nil."
      (y/first-non-nil ,map global-map) ,(kbd keyseq)
      #'(lambda()(interactive) ,@body)))
 
+(defun y/append-to-list(listdest listsrc &optional append compare-fn)
+  "Add each member of LISTSRC to LISTDEST.
+Call `add-to-list' for each member of LISTSRC.  APPEND and COMPARE-FN
+transfer to `add-to-list'."
+  (dolist (m listsrc)
+    (add-to-list listdest m append compare-fn)))
+
 (defun y/delete-word (arg)
   "Delete characters forward until encountering the end of a word.
 With argument ARG, do this that many times."

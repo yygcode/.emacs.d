@@ -21,6 +21,14 @@
 
 (require 'cc-mode)
 
+(require 'y-auxiliary)
+(require 'y-package)
+
+(y/package-install 'company)
+
+(require 'company)
+(require 'company-clang)
+
 (use-package company
   :diminish
   :init

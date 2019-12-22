@@ -773,7 +773,7 @@ Disable mouse globally.
   (use-package disable-mouse
     :diminish disable-mouse-global-mode
     :init
-    (global-disable-mouse-mode))
+    (disable-mouse-global-mode))
 #+end_src
 
 ** smartparens
@@ -1299,52 +1299,20 @@ HTML, CSS and more.
 
 * Orgmode
 ** basic
-#+begin_src emacs-lisp
-  (use-package org
-    :init
-    (setq org-src-fontify-natively t
-          org-support-shift-select t)
-    :config
-    (progn
-      (setq org-directory "~/org")
-      (setq org-agenda-files (list org-directory
-                                   (concat org-directory "/a")
-                                   (concat org-directory "/p")))
-      (setq org-default-notes-file (concat org-directory "/notes.org"))
-      (setq org-display-custom-times t)
-      (setq org-time-stamp-custom-formats
-            '("<%Y-%m-%d %a>" . "<%Y-%m-%d %a %H:%M>")))
-    :bind
-    ;; global
-    (("C-c c" . org-capture)
-     ("C-c a" . org-agenda))
-    (:map org-mode-map
-          ("C-o" . other-window)
-          ("C-c t" . org-insert-structure-template))
-    :mode
-    ("\\.org\\'" . org-mode))
+- org and org-plus-contrib
+  + Builtin org
+  + Install and org-plus-contrib.
+  + Worg link is https://orgmode.org/worg/org-contrib/.
 
-  ;; disable org-src flycheck
-  (use-package org-src
-    :ensure org-plus-contrib
-    :diminish
-    :hook
-    (org-src-mode . (lambda() (flycheck-mode -1))))
-#+end_src
+- bullets
+  + Homepage: [[https://github.com/sabof/org-bullets][GitHub Org Bullets]]
+  + FIXME: Win7 Ultimate CN version can not show heading bullets low than level 3
 
-** bullets
-- Homepage: [[https://github.com/sabof/org-bullets][GitHub Org Bullets]]
-- FIXME: Win7 Ultimate CN version can not show heading bullets low than level 3
 #+begin_src emacs-lisp
-  (use-package org-bullets
-    :hook
-    (org-mode . org-bullets-mode))
+  (require 'y-org)
 #+end_src
 
 ** pomodoro
-   :LOGBOOK:
-   CLOCK: [2019-12-01 Sun 22:03]
-   :END:
 - https://github.com/lolownia/org-pomodoro
 #+begin_src emacs-lisp
   (use-package org-pomodoro
@@ -1354,6 +1322,11 @@ HTML, CSS and more.
           org-pomodoro-format "%s"))
 
   (use-package redtick)
+#+end_src
+
+** publish
+#+begin_src emacs-lisp
+  (require 'y-publish)
 #+end_src
 
 * Platform
