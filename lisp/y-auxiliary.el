@@ -350,6 +350,13 @@ will be killed."
         (setq s (buffer-string))))
     s))
 
+(defun y/string-from-file-safe(filename)
+  "Return FILENAME contents if file readable.
+Otherwise return \"\""
+  (if (and filename (stringp filename) (file-readable-p filename))
+      (y/string-from-file filename)
+    ""))
+
 (provide 'y-auxiliary)
 
 ;;; y-auxiliary.el ends here

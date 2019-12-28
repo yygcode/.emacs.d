@@ -35,8 +35,8 @@
       ;; relative to `org-directory'
       org-agenda-files (list "/gtd" "/private" "/website")
       org-default-notes-file (concat org-directory "/notes.org")
-      org-time-stamp-custom-formats '("<%Y-%m-%d %a>" .
-                                      "<%Y-%m-%d %a %H:%M>"))
+      org-time-stamp-custom-formats '("%F" .
+                                      "%F %H:%M"))
 (add-to-list 'org-structure-template-alist '("p" . "preview"))
 
 (y/keymap-set-key (kbd "C-c c") #'org-capture)

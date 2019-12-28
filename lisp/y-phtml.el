@@ -16,32 +16,23 @@
 
 (require 'y-org)
 
-(setq org-html-doctype "xhtml5"
-      org-html-coding-system 'utf-8-unix
-      org-html-link-home "https://ycode.org"
-      org-html-preamble nil
-      org-html-postamble nil
-      org-html-viewport nil ;; use bootstrap
-      ;; disable builtin style and scripts, and config in project.
-      org-html-head-include-default-style nil
-      org-html-head-include-scripts nil
-      org-html-htmlize-output-type 'css
-      org-html-table-default-attributes nil)
+(defgroup y/publish-html nil
+  "Publish html."
+  :prefix "y/publish-html-"
+  :group 'y/publish-html)
 
-(defun y/org-publish-find-date(entry project)
-  "Fix bug of org-publish-find-date fpr ENTRY, PROJECT."
-  (let* ((date (org-publish-find-property entry :date project)))
+(defun y/org-publish-find-date(entry plist)
+  "Fix bug of org-publish-find-date fpr ENTRY, PLIST."
+  (let ((date (org-publish-find-property entry :date plist)))
     ;; format-time-string don't know YYYY-MM-DD;
     ;; so convert YYYY-MM-DD to YYYY-MM-DD 00:00
-    (if date
-        (progn
-          (setq date (org-no-properties
-                      (org-element-interpret-data date)))
-          (unless (string-match "[1-9]:[0-5]" date)
-            (setq date (concat date " 00:00")))
-          (setq date (safe-date-to-time date)))
-      (setq date (current-time)))
-    date))
+    (setq date (if date (org-no-properties
+                         (org-element-interpret-data date))
+                 (current-time-string)))
+    ;; the regexp is not correct, but it's enough here.
+    (unless (string-match "[0-9][0-9]:[0-9][0-9]" date)
+      (setq date (concat date " 00:00")))
+    (format-time-string "%F" (safe-date-to-time date))))
 
 (defun y/blog-sitemap(title &optional list)
   "Generate sitemap contents with TITLE and LIST."
@@ -54,10 +45,10 @@
 (defun y/blog-sitemap-format-entry(entry style project)
   "Format sitemap entry for ENTRY STYLE PROJECT."
   (cond ((not (directory-name-p entry))
-         (let* ((date (y/org-publish-find-date entry project)))
-           (format "[%s] [[file:%s][%s]]"
-                   (format-time-string "%F" date) entry
-                   (org-publish-find-title entry project))))
+         (format "[%s] [[file:%s][%s]]"
+                 (y/org-publish-find-date entry project)
+                 entry
+                 (org-publish-find-title entry project)))
         ((eq style 'tree)
          ;; Return only last subdir.
          (file-name-nondirectory (directory-file-name entry)))
@@ -67,6 +58,7 @@
   "Add Date Prefix for ENTRY STYLE PROJECT."
   (cond ((not (directory-name-p entry))
          (let* ((date (y/org-publish-find-date entry project)))
+           (message "DbgTrace:%s" (format-time-string "%F" date))
            (format "[%s] [[file:%s][%s]]"
                    (format-time-string "%F" date) entry
                    (org-publish-find-title entry project))))
@@ -87,14 +79,61 @@
            (buffer-string))))
     (concat "#+TITLE: " title "\n------\n\n" contents)))
 
+(defcustom y/html-snippets-dir
+  "~/docs/website/html"
+  "Html snippets directory for org publish."
+  :type 'string
+  :group 'y/publish-html)
+
+(defun y/org-html-template(args)
+  "Enhance html contents.
+ARGS is the argument list."
+  (let* ((contents (nth 0 args))
+         (plist (nth 1 args))
+         (utterances-theme (or (plist-get plist :y/utterances-theme)
+                               "utterances-light.html"))
+         (utterances-theme-file
+          (concat y/html-snippets-dir "/" utterances-theme)))
+
+    (when (and (not (plist-get plist :y/utterances-disabled))
+               (file-readable-p utterances-theme-file))
+      (setf (nth 0 args)
+            (concat contents "\n" (y/string-from-file utterances-theme-file))))
+    args))
+(advice-add 'org-html-template :filter-args #'y/org-html-template)
+
+(defun y/project-postamble(plist)
+  "Generate html postample string for PLIST."
+  (y/string-from-file-safe
+   (or (plist-get plist :y/postamble-file)
+       ;; default postamble declares copyright.
+       (concat y/html-snippets-dir "/postamble-default.html"))))
+
+(defun y/project-preamble(plist)
+  "Generate html postample string for PLIST property."
+  (message "PREAMDBG: %s" (plist-get plist :y/preamble-file))
+  (y/string-from-file-safe (plist-get plist :y/preamble-file)))
+
+(setq org-html-doctype "xhtml5"
+      org-html-coding-system 'utf-8-unix
+      org-html-link-home "https://ycode.org"
+      org-html-preamble #'y/project-preamble
+      org-html-postamble #'y/project-postamble
+      org-html-viewport nil ;; use bootstrap
+      ;; disable builtin style and scripts, and config in project.
+      org-html-head-include-default-style nil
+      org-html-head-include-scripts nil
+      org-html-htmlize-output-type 'css
+      org-html-table-default-attributes nil)
+
 (let ((sites))
   (setq sites
         `(("blogs"
            :base-directory "~/docs/website/blogs"
            :base-extension "org"
            :publishing-directory "~/hub/github.io/blogs"
-           :preparation-function y/publish-preparation
-           :completion-function y/publish-completion
+           ;; :preparation-function y/publish-preparation
+           ;; :completion-function y/publish-completion
            :recursive t
            :headline-levels 4
            :auto-sitemap t
@@ -108,12 +147,17 @@
            :auto-preamble t
            :author "yanyg"
            :email "yygcode@gmail.com"
+           :html-head ,(y/string-from-file-safe
+                        (concat y/html-snippets-dir "/head-blog.html"))
            :html-link-home ""
            :html-link-up ""
            :publishing-function org-html-publish-to-html
            :section-numbers t
            :htmlized-source t
-           :with-toc t)
+           :with-toc t
+           ;; customize keyword
+           :y/preamble-file "~/docs/website/html/preamble-blog.html"
+           )
           ("papers"
            :base-directory "~/docs/website/papers"
            :base-extension "org"
@@ -123,6 +167,29 @@
            :auto-sitemap t
            :sitemap-filename "paperlist.org"
            :sitemap-title "PaperList"
+           :sitemap-sort-files anti-chronologically
+           :sitemap-style list
+           :sitemap-function y/main-sitemap
+           :sitemap-format-entry y/sitemap-format-entry
+           :makeindex t
+           :auto-preamble t
+           :author "yanyg"
+           :email "yygcode@gmail.com"
+           :html-link-home ""
+           :html-link-up ""
+           :publishing-function org-html-publish-to-html
+           :section-numbers t
+           :htmlized-source t
+           :with-toc t)
+          ("html-themes-example"
+           :base-directory "~/docs/website/examples"
+           :base-extension "org"
+           :publishing-directory "~/hub/github.io/examples"
+           :recursive t
+           :headline-levels 4
+           :auto-sitemap t
+           :sitemap-filename "examples.org"
+           :sitemap-title "ExampleList"
            :sitemap-sort-files anti-chronologically
            :sitemap-style list
            :sitemap-function y/main-sitemap
