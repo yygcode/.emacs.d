@@ -49,7 +49,9 @@
 ;; export/publish config
 (defvar y/autofiles-directory)
 (setq org-export-default-language "zh-CN"
+      org-export-time-stamp-file nil
       org-export-with-priority t
+      org-export-with-toc 2
       ;; use sub scripts like this: a_{b}, a^{b}
       org-export-with-sub-superscripts '{}
       org-publish-timestamp-directory

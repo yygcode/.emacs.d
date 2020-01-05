@@ -22,6 +22,7 @@
 (require 'elisp-mode)
 (require 'lisp-mode)
 (require 'ielm)
+(require 'subr-x)
 
 (defconst y/autofiles-directory
   (expand-file-name ".autofiles/" user-emacs-directory)
@@ -66,6 +67,14 @@ Use `delete' to remove from SEQ."
     (dolist (l args)
       (when l
         (throw 'final l)))))
+
+(defun y/slash-to-dash(str &optional prefix)
+  "Replace \"/\" to \"-\" in string STR.
+Keep the \"/\" in PREFIX."
+  (or prefix (setq prefix ""))
+  (setq str (string-remove-prefix prefix str))
+  (setq str (replace-regexp-in-string "/" "-" str))
+  (concat prefix str))
 
 (defun y/make-directory(dir)
   "Make directory DIR if not exist.

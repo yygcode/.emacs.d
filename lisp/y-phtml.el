@@ -22,7 +22,7 @@
   :group 'y/publish-html)
 
 (defun y/org-publish-find-date(entry plist)
-  "Fix bug of org-publish-find-date fpr ENTRY, PLIST."
+  "Fix bug of org-publish-find-date for ENTRY, PLIST."
   (let ((date (org-publish-find-property entry :date plist)))
     ;; format-time-string don't know YYYY-MM-DD;
     ;; so convert YYYY-MM-DD to YYYY-MM-DD 00:00
@@ -32,21 +32,30 @@
     ;; the regexp is not correct, but it's enough here.
     (unless (string-match "[0-9][0-9]:[0-9][0-9]" date)
       (setq date (concat date " 00:00")))
-    (format-time-string "%F" (safe-date-to-time date))))
+    (safe-date-to-time date)))
+(advice-add 'org-publish-find-date :override #'y/org-publish-find-date)
+
+(defun y/org-publish-find-date-string(entry plist)
+  "Fix bug of org-publish-find-date fpr ENTRY, PLIST."
+  (format-time-string "%F" (y/org-publish-find-date entry plist)))
 
 (defun y/blog-sitemap(title &optional list)
   "Generate sitemap contents with TITLE and LIST."
   (let ((contents
          (with-temp-buffer
            (insert (org-list-to-org list))
+           (goto-char (point-min))
+           (when (re-search-forward "[[file:theindex.org][Index]]" nil t)
+             (move-beginning-of-line nil)
+             (kill-line))
            (buffer-string))))
-    (concat "#+TITLE: " title "\n------\n\n" contents)))
+    (concat "#+TITLE: " title "\n" contents)))
 
 (defun y/blog-sitemap-format-entry(entry style project)
   "Format sitemap entry for ENTRY STYLE PROJECT."
   (cond ((not (directory-name-p entry))
          (format "[%s] [[file:%s][%s]]"
-                 (y/org-publish-find-date entry project)
+                 (y/org-publish-find-date-string entry project)
                  entry
                  (org-publish-find-title entry project)))
         ((eq style 'tree)
@@ -57,11 +66,10 @@
 (defun y/sitemap-format-entry(entry style project)
   "Add Date Prefix for ENTRY STYLE PROJECT."
   (cond ((not (directory-name-p entry))
-         (let* ((date (y/org-publish-find-date entry project)))
-           (message "DbgTrace:%s" (format-time-string "%F" date))
-           (format "[%s] [[file:%s][%s]]"
-                   (format-time-string "%F" date) entry
-                   (org-publish-find-title entry project))))
+         (format "[%s] [[file:%s][%s]]"
+                 (y/org-publish-find-date-string entry project)
+                 entry
+                 (org-publish-find-title entry project)))
         ((eq style 'tree)
          ;; Return only last subdir.
          (file-name-nondirectory (directory-file-name entry)))
@@ -77,7 +85,7 @@
              (move-beginning-of-line nil)
              (kill-line))
            (buffer-string))))
-    (concat "#+TITLE: " title "\n------\n\n" contents)))
+    (concat "#+TITLE: " title "------\n\n" contents)))
 
 (defcustom y/html-snippets-dir
   "~/docs/website/html"
@@ -93,12 +101,45 @@ ARGS is the argument list."
          (utterances-theme (or (plist-get plist :y/utterances-theme)
                                "utterances-light.html"))
          (utterances-theme-file
-          (concat y/html-snippets-dir "/" utterances-theme)))
+          (concat y/html-snippets-dir "/" utterances-theme))
+         (sitemap-filename (plist-get plist :sitemap-filename))
+         (html-head (plist-get plist :y/html-head-file))
+         (html-head-sitemap (plist-get plist :y/html-head-sitemap-file))
+         (html-head-theindex (plist-get plist :y/html-head-theindex-file))
+         (html-preamble (plist-get plist :y/html-preamble-file))
+         (html-preamble-sitemap
+          (plist-get plist :y/html-preamble-sitemap-file))
+         (html-preamble-theindex
+          (plist-get plist :y/html-preamble-theindex-file)))
 
+    ;; utterances
     (when (and (not (plist-get plist :y/utterances-disabled))
                (file-readable-p utterances-theme-file))
       (setf (nth 0 args)
             (concat contents "\n" (y/string-from-file utterances-theme-file))))
+
+    (and (stringp html-head)
+         (plist-put plist :html-head (y/string-from-file html-head)))
+    (and (stringp html-preamble)
+         (plist-put plist :html-preamble (y/string-from-file html-preamble)))
+
+    ;; sitemap and theindex html-head
+    (when (and (stringp sitemap-filename)
+               (string-suffix-p sitemap-filename
+                                (plist-get plist :input-file)))
+      (and (stringp html-head-sitemap)
+           (plist-put plist :html-head
+                      (y/string-from-file html-head-sitemap)))
+      (and (stringp html-preamble-sitemap)
+           (plist-put plist :html-preamble
+                      (y/string-from-file html-preamble-sitemap))))
+    (when (string-suffix-p "theindex.org" (plist-get plist :input-file))
+      (and (stringp html-head-theindex)
+           (plist-put plist :html-head
+                      (y/string-from-file html-head-theindex)))
+      (and (stringp html-preamble-theindex)
+           (plist-put plist :html-preamble
+                      (y/string-from-file html-preamble-theindex))))
     args))
 (advice-add 'org-html-template :filter-args #'y/org-html-template)
 
@@ -111,12 +152,13 @@ ARGS is the argument list."
 
 (defun y/project-preamble(plist)
   "Generate html postample string for PLIST property."
-  (message "PREAMDBG: %s" (plist-get plist :y/preamble-file))
-  (y/string-from-file-safe (plist-get plist :y/preamble-file)))
+  ;; `y/org-html-template' would set proper preamble,
+  ;; Reserve the function here for reference later.
+  (y/string-from-file-safe (plist-get plist :y/html-preamble-file)))
 
 (setq org-html-doctype "xhtml5"
       org-html-coding-system 'utf-8-unix
-      org-html-link-home "https://ycode.org"
+      org-html-link-home "" ;; "https://ycode.org"
       org-html-preamble #'y/project-preamble
       org-html-postamble #'y/project-postamble
       org-html-viewport nil ;; use bootstrap
@@ -125,15 +167,14 @@ ARGS is the argument list."
       org-html-head-include-scripts nil
       org-html-htmlize-output-type 'css
       org-html-table-default-attributes nil)
+;; Comments: Change `org-html-mathjax-options' and `org-html-mathjax-template'
+;; if want to customize mathjax.
 
 (let ((sites))
   (setq sites
         `(("blogs"
            :base-directory "~/docs/website/blogs"
-           :base-extension "org"
            :publishing-directory "~/hub/github.io/blogs"
-           ;; :preparation-function y/publish-preparation
-           ;; :completion-function y/publish-completion
            :recursive t
            :headline-levels 4
            :auto-sitemap t
@@ -145,18 +186,20 @@ ARGS is the argument list."
            :sitemap-style list
            :makeindex t
            :auto-preamble t
+           :y/html-preamble-file "~/docs/website/html/preamble-blog.html"
+           :y/html-head-file "~/docs/website/html/head-blog.html"
+           :y/html-preamble-sitemap-file
+           "~/docs/website/html/preamble-blog-sitemap.html"
+           :y/html-preamble-theindex-file
+           "~/docs/website/html/preamble-blog-theindex.html"
            :author "yanyg"
            :email "yygcode@gmail.com"
-           :html-head ,(y/string-from-file-safe
-                        (concat y/html-snippets-dir "/head-blog.html"))
            :html-link-home ""
            :html-link-up ""
            :publishing-function org-html-publish-to-html
            :section-numbers t
            :htmlized-source t
            :with-toc t
-           ;; customize keyword
-           :y/preamble-file "~/docs/website/html/preamble-blog.html"
            )
           ("papers"
            :base-directory "~/docs/website/papers"
@@ -175,8 +218,10 @@ ARGS is the argument list."
            :auto-preamble t
            :author "yanyg"
            :email "yygcode@gmail.com"
-           :html-link-home ""
-           :html-link-up ""
+           :html-head ,(y/string-from-file-safe
+                        (concat y/html-snippets-dir "/head-paper.html"))
+           :html-link-home "paperlist.html"
+           :html-link-up "../index.html"
            :publishing-function org-html-publish-to-html
            :section-numbers t
            :htmlized-source t

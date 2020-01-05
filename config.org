@@ -745,8 +745,9 @@ selections.
     ;; use C-\ (toggle-input-method) to toggle to other(e.g. pyim)
     (helm-set-local-variable 'current-input-method nil)
     :bind
-    ("M-x" . helm-M-x)
-    ("C-x b" . helm-mini))
+    (:map global-map
+          ("M-x" . helm-M-x)
+          ("C-x b" . helm-mini)))
 #+end_src
 
 ** hungry delete
