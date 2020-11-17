@@ -28,7 +28,8 @@
 (require 'ox-publish)
 (require 'ox-rss)
 
-(setq-default org-display-custom-times t)
+(setq-default org-display-custom-times t
+              org-adapt-indentation nil)
 (setq org-src-fontify-natively t
       org-support-shift-select t
       org-directory "~/docs"

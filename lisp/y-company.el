@@ -47,7 +47,7 @@
   (bind-key [remap complete-tag] #'company-complete)
   (bind-key [remap completion-at-point-functions] #'company-complete)
   (require 'company-clang)
-  (setq company-clang-modes nil)
+  ;; (setq company-clang-modes nil)
   :hook
   (after-init . global-company-mode)
   :custom-face
@@ -87,9 +87,44 @@
   :bind
   ("C-c , f" . company-c-headers))
 
+;; (use-package lsp-mode
+;;   :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+;;          (c-mode . lsp)
+;;          (c++-mode . lsp)
+;;          ;; if you want which-key integration
+;;          (lsp-mode . lsp-enable-which-key-integration))
+;;   :commands lsp)
+;; (use-package lsp-ui :commands lsp-ui-mode)
+;; (use-package helm-lsp :commands helm-lsp-workspace-symbol)
+(defun efs/lsp-mode-setup ()
+  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+  (lsp-headerline-breadcrumb-mode))
+
+(use-package lsp-mode
+  :commands (lsp lsp-deferred)
+  :hook (
+         (c-mode . lsp)
+         (c++-mode . lsp)
+         (lsp-mode . efs/lsp-mode-setup))
+  :init
+  (setq lsp-keymap-prefix "C-c l")  ;; Or 'C-l', 's-l'
+  :config
+  (lsp-enable-which-key-integration t))
+
+;; (use-package lsp-ui
+;;   :hook (lsp-mode . lsp-ui-mode)
+;;   :custom
+;;   (lsp-ui-doc-position 'bottom))
+
+(use-package lsp-treemacs
+  :after lsp)
+
+(use-package lsp-ivy)
+
 (defvar y/company-backends-c-common
   '(company-c-headers
     ;; company-semantic ;; very slow, disable it.
+    company-capf
     company-gtags
     company-keywords
     company-yasnippet)
