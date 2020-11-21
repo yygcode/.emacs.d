@@ -1276,6 +1276,7 @@ C++ call graph: https://github.com/beacoder/call-graph
     :hook
     (prog-mode . whitespace-mode)
     (text-mode . whitespace-mode)
+    (protobuf-mode . whitespace-mode)
     (before-save . whitespace-cleanup))
 
   ;; theme has no hook. use advice.
@@ -1385,6 +1386,17 @@ Optimize fcitx behavior.
       (fcitx-prefix-keys-add "C-x" "C-c" "C-h" "M-s" "M-o")
       ;; (setq fcitx-use-dbus t)
       ))
+#+end_src
+
+* File mode
+** protobuf
+#+begin_src elisp
+  (use-package protobuf-mode)
+#+end_src
+
+** log view
+#+begin_src elisp
+  (use-package logview)
 #+end_src
 
 * Footer

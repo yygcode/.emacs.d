@@ -63,6 +63,30 @@
          (file-name-nondirectory (directory-file-name entry)))
         (t entry)))
 
+(defun y/code-snippets-sitemap(title &optional list)
+  "Generate sitemap contents with TITLE and LIST."
+  (let ((contents
+         (with-temp-buffer
+           (insert (org-list-to-org list))
+           (goto-char (point-min))
+           (when (re-search-forward "[[file:theindex.org][Index]]" nil t)
+             (move-beginning-of-line nil)
+             (kill-line))
+           (buffer-string))))
+    (concat "#+TITLE: " title "\n" contents)))
+
+(defun y/code-snippets-sitemap-format-entry(entry style project)
+  "Format sitemap entry for ENTRY STYLE PROJECT."
+  (cond ((not (directory-name-p entry))
+         (format "[%s] [[file:%s][%s]]"
+                 (y/org-publish-find-date-string entry project)
+                 entry
+                 (org-publish-find-title entry project)))
+        ((eq style 'tree)
+         ;; Return only last subdir.
+         (file-name-nondirectory (directory-file-name entry)))
+        (t entry)))
+
 (defun y/sitemap-format-entry(entry style project)
   "Add Date Prefix for ENTRY STYLE PROJECT."
   (cond ((not (directory-name-p entry))
@@ -201,6 +225,37 @@ ARGS is the argument list."
            :htmlized-source t
            :with-toc t
            )
+          ("code-snippets"
+           :base-directory "~/docs/website/code-snippets"
+           :publishing-directory "~/hub/github.io/code-snippets"
+           :recursive t
+           :headline-levels 4
+           :auto-sitemap t
+           :sitemap-filename "snippets.org"
+           :sitemap-function y/code-snippets-sitemap
+           :sitemap-format-entry y/code-snippets-sitemap-format-entry
+           :sitemap-title "Code Snippets"
+           :sitemap-sort-files anti-chronologically
+           :sitemap-style list
+           :makeindex t
+           :auto-preamble t
+           :y/html-preamble-file
+           "~/docs/website/html/preamble-code-snippet.html"
+           :y/html-head-file
+           "~/docs/website/html/head-code-snippet.html"
+           :y/html-preamble-sitemap-file
+           "~/docs/website/html/preamble-code-snippet-sitemap.html"
+           :y/html-preamble-theindex-file
+           "~/docs/website/html/preamble-code-snippet-theindex.html"
+           :author "yanyg"
+           :email "yygcode@gmail.com"
+           :html-link-home ""
+           :html-link-up ""
+           :publishing-function org-html-publish-to-html
+           :section-numbers t
+           :htmlized-source t
+           :with-toc t
+           )
           ("papers"
            :base-directory "~/docs/website/papers"
            :base-extension "org"
@@ -283,7 +338,7 @@ ARGS is the argument list."
            :auto-sitemap t
            :sitemap-function y/main-sitemap
            :sitemap-format-entry y/sitemap-format-entry
-           :sitemap-filename "main.org"
+           :sitemap-filename "sitemap.org"
            :sitemap-title "Main Archives"
            :sitemap-sort-files anti-chronologically
            :sitemap-style list

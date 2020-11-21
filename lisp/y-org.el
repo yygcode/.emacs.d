@@ -31,6 +31,7 @@
 (setq-default org-display-custom-times t)
 (setq org-src-fontify-natively t
       org-adapt-indentation nil
+      org-link-file-path-type 'relative
       org-support-shift-select t
       org-directory "~/docs"
       ;; relative to `org-directory'

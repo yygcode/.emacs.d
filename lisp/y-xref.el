@@ -100,7 +100,7 @@
         helm-gtags-path-style 'absolute
         helm-gtags-update-interval-second 300)
   :bind
-  (:map counsel-gtags-mode-map
+  (:map helm-gtags-mode-map
         ("M-."     . helm-gtags-dwim)
         ("M-," . helm-gtags-pop-stack)
         ("C-c g l" . helm-gtags-tags-in-this-function)
@@ -116,7 +116,7 @@
         ("." . helm-gtags-dwim)
         ("," . helm-gtags-pop-stack))
   :hook
-  (c-mode-common . counsel-gtags-mode))
+  (c-mode-common . helm-gtags-mode))
 
 (defun y/xref-dwim()
   "Find definition at current point."
