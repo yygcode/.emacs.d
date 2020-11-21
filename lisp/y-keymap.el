@@ -76,7 +76,7 @@ The original `use-package' default map is `global-map'"
 
 (define-minor-mode y/keymap-mode "Basic custom keymap"
   :lighter " Y/Keymap"
-  :init-value nil
+  :init-value t
   :group 'y/keymap
   :keymap
   (let ((map (make-sparse-keymap)))

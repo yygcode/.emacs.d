@@ -30,6 +30,7 @@
 
 (setq-default org-display-custom-times t)
 (setq org-src-fontify-natively t
+      org-adapt-indentation nil
       org-support-shift-select t
       org-directory "~/docs"
       ;; relative to `org-directory'
