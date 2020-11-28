@@ -32,6 +32,7 @@
 (require 'y-package)
 
 (require 'cl-lib)
+(require 'help-mode)
 
 (y/package-install 'use-package)
 (require 'use-package)
@@ -53,6 +54,14 @@
 (eval-and-compile
  (y/define-set-key-function
   y/emulation-set-key y/emulation-unset-key y/emulation-map))
+
+(define-key help-mode-map (kbd "n") #'next-line)
+(define-key help-mode-map (kbd "p") #'previous-line)
+(define-key help-mode-map (kbd "f") #'forward-char)
+(define-key help-mode-map (kbd "b") #'backward-char)
+(define-key help-mode-map (kbd "s") #'swiper)
+(define-key help-mode-map (kbd "M-n") #'forward-button)
+(define-key help-mode-map (kbd "M-p") #'backward-button)
 
 (defgroup y/keymap nil
   "Custom keymap"

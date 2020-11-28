@@ -433,7 +433,7 @@ https://emacs.stackexchange.com/a/3044.
   (setq display-time-default-load-average nil
         display-time-format "%k:%M %a" ;; remove %b %d
         display-time-mode t)
-  (setq system-time-locale "C") ;; show english even LANG to zh_CN.UTF-8
+  (setq system-time-locale "C") ;; show english date even LANG to zh_CN.UTF-8
   (display-time)
 
   (setq battery-mode-line-format " [%L %b%p%% %t]" ;; sml will override it

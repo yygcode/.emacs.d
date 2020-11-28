@@ -70,6 +70,7 @@
       url-cache-directory (concat y/autofiles-directory "url/cache")
       url-cookie-file (concat y/autofiles-directory "url/cookie")
       url-history-file (concat y/autofiles-directory "url/history")
+      what-cursor-show-names t
       )
 
 (fset 'yes-or-no-p 'y-or-n-p)

@@ -84,6 +84,9 @@ N is place holder."
     (y/count-loop
      i 97 122 nil
      (define-key map (make-vector 1 i) (make-vector 1 (- i 96))))
+
+    ;; '=' to 'C-x ='
+    (define-key map (kbd "=") #'what-cursor-position)
     map)
   ;; body
   (y/browse--adjust-buffer y/browse-mode))

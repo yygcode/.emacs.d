@@ -306,6 +306,30 @@ ARGS is the argument list."
            :section-numbers t
            :htmlized-source t
            :with-toc t)
+          ("emacs"
+           :base-directory "~/docs/website/emacs"
+           :base-extension "org"
+           :publishing-directory "~/hub/github.io/emacs"
+           :recursive t
+           :headline-levels 4
+           :auto-sitemap t
+           :sitemap-filename "sitemap.org"
+           :sitemap-title "Emacs SiteMap"
+           :sitemap-sort-files anti-chronologically
+           :sitemap-style list
+           :sitemap-function y/main-sitemap
+           :sitemap-format-entry y/sitemap-format-entry
+           :makeindex t
+           :auto-preamble t
+           :author "yanyg"
+           :email "yygcode@gmail.com"
+           :html-head nil
+           :html-link-home "index.html"
+           :html-link-up "../index.html"
+           :publishing-function org-html-publish-to-html
+           :section-numbers t
+           :htmlized-source t
+           :with-toc t)
           ("html-themes-example"
            :base-directory "~/docs/website/examples"
            :base-extension "org"
