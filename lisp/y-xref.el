@@ -22,7 +22,12 @@
 (require 'y-browse)
 (require 'y-keymap)
 
-(y/env-set "GTAGSLIBPATH" "/usr")
+;; Generate gtags in /usr directory:
+;; cd /usr
+;; find usr/include/ usr/lib/gcc/x86_64-linux-gnu/8/include/ \
+;; -name '*.h' | sudo tee gtags.file
+;; sudo gtags
+(y/env-set "GTAGSLIBPATH" "/usr/")
 
 (add-hook 'y/lisp-modes-hook
           #'(lambda()

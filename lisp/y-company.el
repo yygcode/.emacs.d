@@ -56,18 +56,19 @@
                                   :background "DarkOliveGreen4"))))
   :bind
   (:map c-mode-base-map
-        ("C-x <tab>"   . company-complete)
+        ([?\C-x tab]   . company-complete)
+        ([?\C-x ?\t]   . company-complete)
         ("C-x C-x c s"    . company-semantic)
         ("C-x C-x c g"    . company-gtags))
   (:map company-active-map
-          ("<tab>"   . company-select-next)
-          ("S-<tab>" . company-select-previous)
-          ("C-n"     . company-select-next)
-          ("C-p"     . company-select-previous)
-          ("C-k"     . company-complete-selection)
-          ;; company-quickhelp has no map, used map here.
-          ("C-h" . company-quickhelp-manual-begin)
-          ))
+        ([tab]   . company-select-next)
+        ([?\t]   . company-select-next)
+        ("C-n"     . company-select-next)
+        ("C-p"     . company-select-previous)
+        ("C-k"     . company-complete-selection)
+        ;; company-quickhelp has no map, used map here.
+        ("C-h" . company-quickhelp-manual-begin)
+        ))
 
 ;; https://github.com/expez/company-quickhelp
 (use-package company-quickhelp
