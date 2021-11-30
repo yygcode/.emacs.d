@@ -281,6 +281,31 @@ ARGS is the argument list."
            :section-numbers t
            :htmlized-source t
            :with-toc t)
+          ("storage"
+           :base-directory "~/docs/website/storage"
+           :base-extension "org"
+           :publishing-directory "~/hub/github.io/storage"
+           :recursive t
+           :headline-levels 4
+           :auto-sitemap t
+           :sitemap-filename "storage-archives.org"
+           :sitemap-title "StorageArchive"
+           :sitemap-sort-files anti-chronologically
+           :sitemap-style list
+           :sitemap-function y/main-sitemap
+           :sitemap-format-entry y/sitemap-format-entry
+           :makeindex t
+           :auto-preamble t
+           :author "yanyg"
+           :email "yygcode@gmail.com"
+           :html-head ,(y/string-from-file-safe
+                        (concat y/html-snippets-dir "/head-paper.html"))
+           :html-link-home "../index.html"
+           :html-link-up "../index.html"
+           :publishing-function org-html-publish-to-html
+           :section-numbers t
+           :htmlized-source t
+           :with-toc t)
           ("perf"
            :base-directory "~/docs/website/perf"
            :base-extension "org"
@@ -381,7 +406,7 @@ ARGS is the argument list."
            :recursive t
            :publishing-function org-publish-attachment)
           ("website"
-           :components ("main" "blogs" "papers" "attachments"))))
+           :components ("main" "blogs" "papers" "storage" "attachments"))))
   (y/append-to-list 'org-publish-project-alist sites))
 
 (provide 'y-phtml)

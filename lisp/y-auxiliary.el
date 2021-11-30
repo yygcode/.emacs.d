@@ -281,6 +281,19 @@ Like as `global-unset-key' but use map `%s'." map map)
           (set-visited-file-name new-name)
           (set-buffer-modified-p nil))))))
 
+(defun y/copy-projectile-relative-buffer-file-name ()
+  "Copy buffer file name to clipboard for paste."
+  (interactive)
+  (let ((name (buffer-file-name))
+        (root (projectile-project-root)))
+    (or name (setq name (buffer-name)))
+    (and root
+         (setq name (string-remove-prefix root name)))
+    (message "Copy file name %s" name)
+    (kill-new name)))
+(define-key global-map (kbd "C-x M-w")
+  #'y/copy-projectile-relative-buffer-file-name)
+
 ;; source: https://emacs.stackexchange.com/a/24461
 (defun y/revert-all-file-buffers()
   "Refresh all open file buffers without confirmation.
