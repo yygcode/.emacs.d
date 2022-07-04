@@ -28,7 +28,7 @@ This mode is used to browse code."
 
 (defcustom y/browse-major-modes
   '(c-mode c++-mode emacs-lisp-mode lisp-interaction-mode
-    org-mode)
+    org-mode java-mode)
   "Major-mode list if Y/Browse mode enabled."
   :group 'y/browse
   :type 'list)

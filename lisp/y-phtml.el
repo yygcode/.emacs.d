@@ -306,6 +306,31 @@ ARGS is the argument list."
            :section-numbers t
            :htmlized-source t
            :with-toc t)
+          ("leetcode"
+           :base-directory "~/docs/website/leetcode"
+           :base-extension "org"
+           :publishing-directory "~/hub/github.io/leetcode"
+           :recursive t
+           :headline-levels 4
+           :auto-sitemap t
+           :sitemap-filename "leetcode-archives.org"
+           :sitemap-title "LeetcodeArchive"
+           :sitemap-sort-files anti-chronologically
+           :sitemap-style list
+           :sitemap-function y/main-sitemap
+           :sitemap-format-entry y/sitemap-format-entry
+           :makeindex t
+           :auto-preamble t
+           :author "yanyg"
+           :email "yygcode@gmail.com"
+           :html-head ,(y/string-from-file-safe
+                        (concat y/html-snippets-dir "/head-paper.html"))
+           :html-link-home "../index.html"
+           :html-link-up "../index.html"
+           :publishing-function org-html-publish-to-html
+           :section-numbers t
+           :htmlized-source t
+           :with-toc t)
           ("perf"
            :base-directory "~/docs/website/perf"
            :base-extension "org"
@@ -408,6 +433,21 @@ ARGS is the argument list."
           ("website"
            :components ("main" "blogs" "papers" "storage" "attachments"))))
   (y/append-to-list 'org-publish-project-alist sites))
+
+;; fixed extra newline space.
+(defadvice org-html-paragraph
+    (before org-html-paragraph-advice
+            (paragraph contents info) activate)
+  "Join consecutive Chinese lines into a single long line without.
+unwanted space when exporting `org-mode' to html."
+  (let* ((origin-contents (ad-get-arg 1))
+         (fix-regexp "[[:multibyte:]]")
+         (fixed-contents
+          (replace-regexp-in-string
+           (concat
+            "\\(" fix-regexp "\\) *\n *\\(" fix-regexp "\\)") "\\1\\2"
+            origin-contents)))
+    (ad-set-arg 1 fixed-contents)))
 
 (provide 'y-phtml)
 
