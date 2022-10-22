@@ -100,6 +100,8 @@ The original `use-package' default map is `global-map'"
     (define-key map (kbd "C-x C-x C-s") #'isearch-forward)
     (define-key map (kbd "C-x C-x C-r") #'isearch-backward)
 
+    (define-key map (kbd "C-x h") #'mark-whole-buffer)
+
     ;; move
     (define-key map (kbd "C-x C-x f") #'forward-sexp)
     (define-key map (kbd "C-x C-x b") #'backward-sexp)

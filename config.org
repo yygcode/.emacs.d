@@ -938,6 +938,8 @@ C++20 and Technical Specification.
 Use c-guess-no-install and c-guess-view to generate style template.
 Read variable c-offsets-alist for more details.
 
+Call 'c-show-syntactic-information' to show the syntactic before the cursor.
+
 #+begin_src emacs-lisp
   (defconst y/c-style-basic
     '((c-tab-always-indent . nil)
